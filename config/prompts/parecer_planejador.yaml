@@ -248,7 +248,19 @@
 # mesmo corpo (só hints e catálogo mudam). O #2065 (A40.l92) bumpa `_SCHEMA_VERSION` em PR
 # próprio: deploys separados são duas invalidações, e é aceito — acoplar prenderia um P1
 # ao merge de um P0 e deixaria o delta de cada um inatribuível.
-version: "2.21.0"
+# 2.22.0 — A40.l124 ([[ADR-341]] §Emenda 2026-10-09): o corpo volta a caber inteiro. Medido
+# com o manifest de cada run sobre o E5 do próprio run, a demanda passou o cap de 16384 em
+# 2026-08-26 (evictava `investimentos`) e levou `independencia_financeira` em 2026-08-29 —
+# e o parecer passou a pedir como "faltante" exatamente essas raízes. O cap vai a 24576 pela
+# regra de folga da emenda (≥ 20% sobre a demanda medida; o X8 da rodada acusa abaixo de
+# 15%). Devolver as seções custa ancorabilidade, e o custo entra neste bump: `top_ativos`
+# 15 → 5 linhas (com 15, dez ficam sem rota de citação por construção — o catálogo pega as
+# 5 maiores de cada lista) e `citation_catalog.max_bytes` 2600 → 3400 (joelho re-medido).
+# No E5 real: 10/10 seções, folga ~23%, ancoráveis 40/41 (eram 33/36 com 3 seções fora). O
+# cabeçalho de tabela passa a dizer "top N de M" (distiller): "5 de 5" e "5 de 15" chegavam
+# iguais ao modelo. MINOR (ADR-233). COBRA a frota: `manifest_version` compõe a chave de
+# cache, e o cabeçalho novo muda o prompt sem mudar a chave — por isso viaja neste bump.
+version: "2.22.0"
 output_schema: "config/schemas/parecer_planejador.schema.json"
 input_schema_ref: "config/schemas/e5_analysis.schema.json"
 
@@ -524,8 +536,13 @@ context_sections:
     aligned_with_layout: "S3"
     eviction_priority: 9
     blocks:
+      # A40.l124: 5 linhas, não 15. O catálogo de citação pega as `_MAX_LIST_ITEMS` (5)
+      # MAIORES de cada lista, e o produtor ordena por valor (`top_ativos_analyzer.py`):
+      # com 15 linhas, dez R$ visíveis ficavam sem rota de citação por construção. O
+      # título nomeia o corte do PRODUTOR (`TopAtivosConfig.limit`), para que "top 5 de
+      # 15" no cabeçalho não seja lido como "a carteira tem 15 ativos".
       - format: "table"
-        title: "Top ativos (até 15)"
+        title: "Maiores posições, por valor (o motor lista até 15)"
         path: "$.investimentos.top_ativos[*]"
         columns:
           - {path: "posicao", label: "#", format: "int"}
@@ -534,7 +551,7 @@ context_sections:
           - {path: "membro", label: "Membro", format: "raw"}
           - {path: "valor", label: "Valor", format: "brl"}
           - {path: "pct_carteira", label: "% carteira", format: "percent2"}
-        max_rows: 15
+        max_rows: 5
       - format: "scalar"
         path: "$.investimentos.n_imoveis_total"
         label: "Imóveis cadastrados (residência + investimento)"
@@ -907,9 +924,11 @@ tools:
 # ==============================================================================
 max_tool_iterations: 6
 max_total_input_tokens: 50000
-max_exec_context_bytes: 16384  # ~16KB hard limit do CORPO (pré tool calls; hints e
-# catálogo de citação ficam fora, com orçamento próprio). ADR-341 D1: dimensionado
-# para o corpo medido do dogfood (15,6KB) com folga (~+US$0,01–0,02/parecer). O
+max_exec_context_bytes: 24576  # hard limit do CORPO (hints e catálogo de citação ficam
+# fora, com orçamento próprio). ADR-341 §Emenda 2026-10-09: não é número dimensionado uma
+# vez — é REGRA de folga ≥ 20% sobre a demanda medida no E5 real, re-medida quando o X8 da
+# rodada unificada acusa folga < 15% ou seção evictada (o stage publica o orçamento em
+# `output_summary.exec_context`). Medido na 2.22.0: demanda ~18,8 KB, folga ~23%. O
 # budget NÃO é a garantia de completude — a garantia é a eviction por seção (D2):
 # excedeu → seções inteiras de menor prioridade saem, com marcador nomeando-as.
 # Citação verificada E5→E6 (ADR-279 §E · F4): warn loga violação sem bloquear;
@@ -929,12 +948,14 @@ evidencia_verification_mode: "strict"
 # após a projeção dos campos de incerteza (RV8-05) — o joelho ANDA quando o
 # manifest projeta mais dinheiro visível: era 2400 com 36 folhas visíveis, é 2600
 # com 37. 1600→52,8% · 2600→86,5%, e nada acima compra ancorabilidade.
+# A40.l124: com investimentos e IF de volta ao corpo (cap 24576, `top_ativos` 5) o joelho
+# andou de novo — 41 folhas visíveis: 2600→80,5% · 3000→95,1% · 3400→97,6%, e nada acima.
 citation_catalog:
   emit: true
   format: "flat_path_list"
   monetary_only: true
   max_entries: 60
-  max_bytes: 2600
+  max_bytes: 3400
 
 # A40.l49 — rótulo do chip por folha, não por bloco. rotulo_id é o que o LLM
 # copia; label é o texto do chip (finalize). Path ausente daqui = fail-open.

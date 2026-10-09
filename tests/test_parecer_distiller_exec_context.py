@@ -299,6 +299,20 @@ def test_sentinela_nd_nao_renderizada_como_dado():
 # ---------------------------------------------------------------------------
 
 
+def test_cabecalho_de_tabela_diz_quantas_linhas_ficaram_fora():
+    """A40.l124: "(top 5)" não distinguia 5 de 5 de 5 de 15 — o modelo podia afirmar que a
+    carteira tem cinco ativos. O cabeçalho declara o tamanho da lista."""
+    bloco = {
+        "format": "table",
+        "title": "T",
+        "path": "$.lista[*]",
+        "columns": [{"path": "v", "label": "V", "format": "raw"}],
+        "max_rows": 2,
+    }
+    assert "**T** (top 2 de 3):" in render_block(bloco, {"lista": [{"v": 1}, {"v": 2}, {"v": 3}]})
+    assert "**T** (top 2 de 2):" in render_block(bloco, {"lista": [{"v": 1}, {"v": 2}]})
+
+
 def test_tabela_classes_declara_base_por_coluna():
     """A37.l9: cada pct da tabela chega ao LLM com a base no rótulo — coluna
     '% do total investido' (inclui imóveis físicos) vs '% da carteira

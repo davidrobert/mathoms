@@ -203,7 +203,8 @@ def _render_table(block: Mapping[str, Any], e5_data: Mapping[str, Any]) -> str:
     max_rows = int(block.get("max_rows", 10))
     cols = block.get("columns", [])
     title = block.get("title", "")
-    out = [f"**{title}** (top {min(len(rows), max_rows)}):"] if title else []
+    # "de N" (A40.l124): sem ele "5 de 5" e "5 de 15" chegavam iguais ao modelo.
+    out = [f"**{title}** (top {min(len(rows), max_rows)} de {len(rows)}):"] if title else []
     for row in rows[:max_rows]:
         if isinstance(row, Mapping):
             out.append(_render_row(row, cols))
@@ -400,9 +401,9 @@ def _row_money_paths(row: Mapping[str, Any], root: str, index: int, cols: list[d
 
 
 # Fonte de inancorabilidade ESTRUTURAL, não de bytes: o corpo renderiza `max_rows` (10 em
-# `tabela_classes`, 15 em `top_ativos`) e o catálogo pega `_MAX_LIST_ITEMS = 5` — e pega
-# **por maior valor** (`_top_money_indices`), não por posição. Logo há linha visível sem
-# rota por *ranking*, que nenhum ajuste de `max_bytes` resolve.
+# `tabela_classes`; `top_ativos` desceu a 5 na A40.l124 por isso) e o catálogo pega
+# `_MAX_LIST_ITEMS = 5` — e pega **por maior valor** (`_top_money_indices`), não por
+# posição. Logo há linha visível sem rota por *ranking*, que nenhum `max_bytes` resolve.
 def _table_money_paths(block: Mapping[str, Any], e5_data: Mapping[str, Any]) -> Iterator[str]:
     """Folhas R$ de bloco `table` — o path efetivo é `{block.path}[i].{col.path}`."""
     path = block.get("path")
