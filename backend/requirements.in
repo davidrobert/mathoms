@@ -47,13 +47,17 @@ websockets>=12.0
 
 # A6f.3 — Structured JSON logs + OpenTelemetry (ADR-110)
 python-json-logger>=3.2
+# Família acoplada por `==`: os pisos 1.x são um só, os 0.Xb0 são um só, e sobem
+# juntos com o lock (dev/check_lockfile_sync.py; runbook python_dependencies.md
+# §Família opentelemetry). O Dependabot só propõe as sentinelas api e
+# instrumentation-fastapi — o resto é `ignore` em .github/dependabot.yml.
 opentelemetry-api>=1.44.0
-opentelemetry-sdk>=1.30
-opentelemetry-exporter-otlp-proto-http>=1.30
-opentelemetry-instrumentation-fastapi>=0.50b0
-opentelemetry-instrumentation-sqlalchemy>=0.50b0
+opentelemetry-sdk>=1.44.0
+opentelemetry-exporter-otlp-proto-http>=1.44.0
+opentelemetry-instrumentation-fastapi>=0.65b0
+opentelemetry-instrumentation-sqlalchemy>=0.65b0
 opentelemetry-instrumentation-celery>=0.65b0
-opentelemetry-instrumentation-logging>=0.50b0
+opentelemetry-instrumentation-logging>=0.65b0
 
 # Monte Carlo simulations (pipeline/if_projector.py imported transitively)
 # Teto de major por ADR-360 — ver comentário em requirements.in da raiz.
