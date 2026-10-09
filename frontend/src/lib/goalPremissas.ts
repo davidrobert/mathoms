@@ -3,7 +3,7 @@
  * Valores monetários: usar formatCurrency no componente.
  */
 
-import { formatCurrency, formatUSDPtBR } from "@/lib/format";
+import { formatCurrency, formatPercent, formatUSDPtBR } from "@/lib/format";
 import type {
   AlocacaoGoalInputs,
   AlocacaoGoalDerived,
@@ -71,15 +71,15 @@ export function buildIFPremissasRows(
       label: "Renda passiva desejada",
       value: `${formatCurrency(inputs.renda_passiva_mensal_brl)}/mês`,
     },
-    { label: "TRS (taxa de retirada segura)", value: `${inputs.trs_pct}% a.a.` },
+    { label: "TRS (taxa de retirada segura)", value: `${formatPercent(inputs.trs_pct)} a.a.` },
     {
       label: "Retorno real esperado",
-      value: `${inputs.retorno_real_anual_pct}% a.a. (acima da inflação)`,
+      value: `${formatPercent(inputs.retorno_real_anual_pct)} a.a. (acima da inflação)`,
     },
     { label: "Horizonte", value: `${inputs.horizonte_anos} anos` },
     {
       label: "Taxa conservadora (Trinity)",
-      value: `${taxaCons}% a.a.`,
+      value: `${formatPercent(taxaCons)} a.a.`,
     },
   ];
   if (derived) {
@@ -122,7 +122,7 @@ export function buildAportePremissasRows(
       rows.push({
         label: "Distribuição",
         value: keys
-          .map((k) => `${k}: ${(derived.distribuicao_pct[k] ?? 0).toFixed(1)}%`)
+          .map((k) => `${k}: ${formatPercent(derived.distribuicao_pct[k] ?? 0)}`)
           .join(" · "),
       });
     }
