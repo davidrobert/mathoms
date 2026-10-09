@@ -3301,6 +3301,7 @@
               {
                 "maxLength": 16,
                 "minLength": 1,
+                "pattern": "^D[0-9]+$",
                 "type": "string"
               },
               {
