@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -109,12 +110,29 @@ class TestCategorias:
         assert r.pct_futuro == 50.0
 
 
-class TestTotalZero:
-    def test_zero_pct_quando_sem_despesas(self):
+class TestSemBase:
+    """Sem despesa categorizada nem superávit não há divisão a publicar."""
+
+    # O 0/0 anterior caía na faixa mínima: a família sem fluxo no período saía rotulada
+    # "Gastador", no card e no contexto do parecer (`$.equilibrio_cerbasi`).
+    def test_sem_base_nao_publica_divisao_nem_rotulo(self):
         r = EquilibrioCerbasiAnalyzer().analyze(_fluxo({}))
-        assert r.pct_presente == 0.0
-        assert r.pct_futuro == 0.0
-        assert r.classificacao == "Gastador"
+        assert r.pct_presente is None
+        assert r.pct_futuro is None
+        assert r.classificacao is None
+
+    def test_payload_omite_divisao_e_mantem_regua_e_base(self):
+        d = EquilibrioCerbasiAnalyzer().analyze(_fluxo({})).to_legacy_dict()
+        assert not {"pct_presente", "pct_futuro", "classificacao"} & d.keys()
+        assert d["componentes"]["base"] == 0.0
+        assert [f["label"] for f in d["classificacao_faixas"]][-1] == "Gastador"
+
+    def test_payload_sem_divisao_segue_valido_no_schema_e5(self):
+        jsonschema = pytest.importorskip("jsonschema")
+        schema_path = Path(__file__).resolve().parents[3] / "config/schemas/e5_analysis.schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        d = EquilibrioCerbasiAnalyzer().analyze(_fluxo({})).to_legacy_dict()
+        jsonschema.validate(d, schema["properties"]["equilibrio_cerbasi"])
 
 
 class TestConfig:

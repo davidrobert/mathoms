@@ -31,6 +31,20 @@ tags: [type/lane, sprint/a40, status/shipped, priority/p0, area/frontend, area/f
 > re-mede verdadeiro. Correção também no corpo do PR #1845, por comentário.
 > Camada 1 (`check_closure.py --pr 1845`) veio limpa e sem banner de SUBSTRATO — os
 > dois achados são semânticos, que é exatamente o que ela não lê.
+>
+> **Atualização 2026-10-09 (PR #2242): o cartão saiu do relatório, e duas premissas desta
+> lane caíram.**
+> **(a)** O fallback mantido aqui não publicava o aporte **declarado**. Ele lia
+> `cenarios_conjuge.aportes`, que é `meta_aporte × 0,66` (`APORTE_REDUZIDO_FATOR_CONJUGE`):
+> o aporte **reduzido** do cenário de estresse. O teste desta lane chamava esse número de
+> "aporte declarado", ou seja, teste e código compartilhavam a crença (critério 3 da [[A40.l126]]).
+> **(b)** O "Meta de aporte não configurada." não ficou alcançável pela razão do motivo 2
+> abaixo. Ele disparava com `cenarios_conjuge` vazio (sem DOB ou sem projeção), e não com a
+> meta ausente; foi o #2201 que lhe deu o predicado do aporte declarado.
+> O ramo rico não tem produtor desde a ADR-129, e o `EstrategiaAporteCard` foi removido
+> (co-design `product-designer` + `financial-planner`). O §Deferimento abaixo segue de pé,
+> com **outro endereço**: o "quanto aportar" (PMT), quando vier, mora no
+> `AlocacaoAtualVsAlvoCard`, que já publica `next_aporte_classe`, e não num cartão próprio.
 
 
 O bloco mentiroso **saiu** do cartão (PR #1845). O enunciado mandava o cartão passar

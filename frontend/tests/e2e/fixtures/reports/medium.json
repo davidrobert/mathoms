@@ -309,9 +309,37 @@
     "alocacao_alvo": []
   },
   "equilibrio_cerbasi": {
-    "presente": 0.55,
-    "futuro": 0.3,
-    "padrao_vida": 0.15
+    "pct_presente": 70.0,
+    "pct_futuro": 30.0,
+    "classificacao": "Investidor",
+    "presente": "Consolidação patrimonial",
+    "futuro": "Independência Financeira",
+    "janela": "full",
+    "janela_meses": 14,
+    "componentes": {
+      "gasto_presente": 168000.0,
+      "gasto_futuro": 0.0,
+      "poupanca": 72000.0,
+      "base": 240000.0
+    },
+    "classificacao_faixas": [
+      {
+        "minimo_futuro_pct": 30,
+        "label": "Investidor"
+      },
+      {
+        "minimo_futuro_pct": 20,
+        "label": "Equilibrado"
+      },
+      {
+        "minimo_futuro_pct": 10,
+        "label": "Endividado consciente"
+      },
+      {
+        "minimo_futuro_pct": 0,
+        "label": "Gastador"
+      }
+    ]
   },
   "cenarios_conjuge": {},
   "orcamento_prospectivo": {},

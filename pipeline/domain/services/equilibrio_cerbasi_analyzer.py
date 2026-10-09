@@ -140,9 +140,12 @@ class EquilibrioCerbasiConfig:
 
 @dataclass(frozen=True)
 class EquilibrioCerbasi:
-    pct_presente: float
-    pct_futuro: float
-    classificacao: str
+    # `None` = sem base (nenhuma despesa categorizada e nenhum superávit): não há
+    # divisão. O 0/0 anterior caía na faixa mínima e rotulava "Gastador" a família
+    # sem fluxo no período — no card e no contexto do parecer.
+    pct_presente: float | None
+    pct_futuro: float | None
+    classificacao: str | None
     presente: str = "Consolidação patrimonial"
     futuro: str = "Independência Financeira"
     janela: str = "full"
@@ -155,9 +158,7 @@ class EquilibrioCerbasi:
 
     def to_legacy_dict(self) -> dict:
         return {
-            "pct_presente": self.pct_presente,
-            "pct_futuro": self.pct_futuro,
-            "classificacao": self.classificacao,
+            **self._divisao_publicavel(),
             "presente": self.presente,
             "futuro": self.futuro,
             "janela": self.janela,
@@ -172,6 +173,16 @@ class EquilibrioCerbasi:
                 )
             ],
         }
+
+    # Omitir em vez de emitir `null`: o schema E5 tipa os três como não-nulos e não
+    # os exige (`required: []`), e o front decide pela presença do campo.
+    def _divisao_publicavel(self) -> dict[str, float | str]:
+        campos = {
+            "pct_presente": self.pct_presente,
+            "pct_futuro": self.pct_futuro,
+            "classificacao": self.classificacao,
+        }
+        return {k: v for k, v in campos.items() if v is not None}
 
 
 # =============================================================================
@@ -194,13 +205,12 @@ class EquilibrioCerbasiAnalyzer:
         poupanca = float(max(_ZERO, window.receita_recorrente - window.despesa_janela))
         base = gasto_presente + gasto_futuro + poupanca
 
-        pct_presente = round(gasto_presente / base * 100, 1) if base > 0 else 0.0
-        pct_futuro = round((gasto_futuro + poupanca) / base * 100, 1) if base > 0 else 0.0
+        pct_presente, pct_futuro = _divisao_pct(gasto_presente, gasto_futuro + poupanca, base)
 
         return EquilibrioCerbasi(
             pct_presente=pct_presente,
             pct_futuro=pct_futuro,
-            classificacao=self._classify(pct_futuro),
+            classificacao=None if pct_futuro is None else self._classify(pct_futuro),
             classificacao_faixas=tuple(self._config.classificacao),
             janela=window.janela,
             janela_meses=window.janela_meses,
@@ -234,6 +244,13 @@ class EquilibrioCerbasiAnalyzer:
             if pct_futuro >= faixa.minimo_futuro_pct:
                 return faixa.label
         return "Gastador"
+
+
+def _divisao_pct(presente: float, futuro: float, base: float) -> tuple[float | None, float | None]:
+    """``(pct_presente, pct_futuro)`` sobre a base; sem base, ``(None, None)`` — nunca 0/0."""
+    if base <= 0:
+        return None, None
+    return round(presente / base * 100, 1), round(futuro / base * 100, 1)
 
 
 @dataclass(frozen=True)
