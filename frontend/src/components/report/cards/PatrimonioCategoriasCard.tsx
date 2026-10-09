@@ -1,5 +1,3 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import {
@@ -8,6 +6,7 @@ import {
 } from "../utils/visibleCompositionRows";
 import type { MotivoBaldeImovel, PatrimonioData } from "@/types/report-analysis";
 import { formatPercent } from "@/lib/format";
+import { NotaResidenciaNaoApurada } from "@/lib/residenciaNaoApurada";
 
 interface PatrimonioCategoriasCardProps {
   patrimonio: PatrimonioData | undefined;
@@ -37,39 +36,16 @@ function ValorCell({ row }: { row: VisibleCompositionRow }) {
   );
 }
 
-const MARCAR_RESIDENCIA = (
-  <Link
-    href="/config?tab=members"
-    style={{ color: "var(--brand-primary)", textDecoration: "underline" }}
-  >
-    Marcar residência
-  </Link>
-);
-
-/** ADR-439 D2 — a nota diz a direção do erro e a ação; `nao_localizada` não tem CTA,
- *  porque o override já existe e sem `property_id` não haveria onde regravá-lo. */
-function notaDaResidencia(motivo: MotivoBaldeImovel): ReactNode {
-  if (motivo === "nao_localizada") {
-    return "Residência: não localizamos o imóvel que vocês marcaram; o valor dele pode estar somado em Outros imóveis.";
-  }
-  if (motivo === "sem_valor") {
-    return "Residência: o imóvel que vocês marcaram está na declaração sem valor apurado em 31/12.";
-  }
-  return (
-    <>
-      Residência: vocês ainda não indicaram qual imóvel é; até lá, todos contam em Outros
-      imóveis · {MARCAR_RESIDENCIA}
-    </>
-  );
-}
-
+/** ADR-439 D2 — a copy é a do dashboard (`lib/residenciaNaoApurada`); o travessão casa
+ *  a nota com a célula só para quem vê, e o leitor de tela começa pela frase. */
 function NotaResidencia({ motivo }: { motivo: MotivoBaldeImovel }) {
   return (
     <p
       className="mt-1 text-xs text-[var(--surface-muted-foreground)]"
       data-testid="nota-residencia-nao-apurada"
     >
-      — {notaDaResidencia(motivo)}
+      <span aria-hidden="true">— </span>
+      <NotaResidenciaNaoApurada motivo={motivo} />
     </p>
   );
 }
