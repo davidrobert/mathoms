@@ -8,8 +8,12 @@
 
 from __future__ import annotations
 
+import io
 import uuid
 from collections import Counter
+from contextlib import redirect_stdout
+from decimal import Decimal
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -24,6 +28,7 @@ from backend.app.models.user import User
 from backend.app.models.workspace import Workspace
 from backend.app.services.pipeline import pipeline_client as pc
 from backend.tests.test_pipeline_task import _build_file_backed_engines
+from pipeline.llm.call_hooks import LLMBudgetExceededError
 from pipeline.llm.error_classification import LLMError, LLMErrorType
 from pipeline.stage_outcome import DEGRADABLE, stage_criticality
 from pipeline.stage_spec import FULL_ORDER, STAGE_REGISTRY
@@ -212,13 +217,8 @@ def test_falha_do_shell_nao_reexecuta_o_stage(shell_failure, fallback, no_backof
     assert len(posts) == 1
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="ADR-443 §Deferimento: o executor achata a exceção do runner e a classe se perde",
-)
 def test_classe_da_falha_do_runner_sobrevive_ao_executor(monkeypatch, tmp_path):
-    """Vermelho por desenho até o §Deferimento fechar — ao virar XPASS, reescreva o §8.1 do runbook do flip strict."""
+    """Era `xfail` estrito até o §Deferimento da ADR-443 fechar (2026-10-08)."""
     from backend.app.services.pipeline.stage_failure_reason import reason_from_stage_detail
 
     _install_raising_leaf(monkeypatch)
@@ -227,3 +227,138 @@ def test_classe_da_falha_do_runner_sobrevive_ao_executor(monkeypatch, tmp_path):
     result = pc.InProcessPipelineClient().execute_stage(ctx, "extract_with_llm", workspace_id="ws")
 
     assert reason_from_stage_detail(result.detail).value == "provider_error"
+
+
+# A classe sai do objeto vivo no `except` de `_run_stage` e atravessa o executor
+# dentro do `detail`. Os stages abaixo são os que, medidos em 2026-10-08, deixam a
+# exceção tipada chegar ao `_run_stage` em produção; os extract que capturam por
+# documento a convertem antes, e ficam no §Deferimento remanescente da ADR-443. O
+# abort de schema nasce no produtor real — `DBArtifactStore.write` em strict.
+_TIMEOUT = (
+    "LLM call failed after 4 attempts (600412ms): litellm.Timeout: "
+    "AnthropicException - Request timed out"
+)
+
+
+def _budget_hard_stop(_ctx):
+    raise LLMBudgetExceededError("ws-sintetico", Decimal("11.00"), Decimal("10.00"))
+
+
+def _llm_timeout(_ctx):
+    raise LLMError(_TIMEOUT, LLMErrorType.timeout, retryable=False)
+
+
+def _e3_rejected_by_strict(ctx):
+    ctx.artifact_store.write("reconcile_transactions", "conta_sintetica", {"forma_invalida": True})
+
+
+@pytest.fixture
+def e3_strict(monkeypatch):
+    """Flip per-schema canônico (ADR-284 `mode_overrides`) sobre o `config/` real do repo."""
+    import scripts.pipeline_common as pipeline_common
+
+    monkeypatch.delenv("MATHOMS_PIPELINE_SCHEMA_MODE", raising=False)
+    monkeypatch.setattr(
+        pipeline_common, "CONFIG_DIR", Path(__file__).resolve().parents[2] / "config"
+    )
+    monkeypatch.setattr(pipeline_common, "_schema_registry", None)
+    overrides = {"e3_reconciled.schema.json": "strict"}
+    validation = {"enabled": True, "mode": "warn", "mode_overrides": overrides}
+    monkeypatch.setitem(
+        pipeline_common._config_cache, "pipeline.json", {"schema_validation": validation}
+    )
+
+
+def _run_stages(seed: dict, run_stage_fn, root, stages: list[str]) -> None:
+    from backend.app.tasks.pipeline_task import _execute_stages_loop
+
+    ctx = SimpleNamespace(artifact_store=None, root=root, pipeline_run_id=seed["run_id"])
+    _execute_stages_loop(
+        ctx,
+        stages=stages,
+        run_id=seed["run_id"],
+        ws_id=seed["ws_id"],
+        skip_llm=False,
+        stop_on_error=False,
+        tier="premium",
+        llm_stages=set(_LLM_STAGES),
+        run_stage_fn=run_stage_fn,
+    )
+
+
+def _output_summary(seed: dict, stage: str) -> dict:
+    query = select(PipelineStageLog).where(
+        PipelineStageLog.pipeline_run_id == seed["run_id"], PipelineStageLog.stage == stage
+    )
+    with seed["sync_session"]() as db:
+        return db.execute(query).scalar_one().output_summary
+
+
+_RUNNER_FAILURES = [
+    pytest.param("extract_baseline", _budget_hard_stop, "budget_exhausted", id="budget"),
+    pytest.param("extract_irpf_full", _llm_timeout, "timeout", id="llm-timeout"),
+    pytest.param(
+        "reconcile_transactions", _e3_rejected_by_strict, "output_invalid", id="schema-strict"
+    ),
+]
+
+
+@pytest.mark.parametrize(("stage", "runner", "expected"), _RUNNER_FAILURES)
+@pytest.mark.asyncio
+async def test_reason_class_persistido_pela_composicao_de_producao(
+    stage, runner, expected, seeded_run, production_run_stage_fn, e3_strict, monkeypatch, tmp_path
+):
+    import pipeline.orchestrator as orchestrator
+
+    monkeypatch.setattr(orchestrator, "_get_stage_runner", lambda _stage: runner)
+
+    _run_stages(seeded_run, production_run_stage_fn, tmp_path, [stage])
+
+    assert _status_by_stage(seeded_run) == {stage: "failed"}
+    assert _output_summary(seeded_run, stage)["reason_class"] == expected
+
+
+def _go_shell_running_the_cli(ctx):
+    """O shell Go: roda `run-stage` e devolve num 200 o StageResult que o CLI imprime."""
+    from pipeline import cli_run_stage
+    from pipeline.orchestrator import _run_stage
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        stage = request.url.path.rsplit("/", 2)[-2]
+        argv = ["run-stage", stage, "--workspace", str(ctx.root), "--run-id", "run"]
+        stdout = io.StringIO()
+        with (
+            patch.object(cli_run_stage, "_run_hydrated", lambda s, _args: _run_stage(ctx, s)),
+            redirect_stdout(stdout),
+        ):
+            cli_run_stage.main([*argv, "--workspace-id", "ws"])
+        return httpx.Response(200, content=stdout.getvalue().strip().splitlines()[-1])
+
+    return _handler
+
+
+@pytest.mark.parametrize(
+    ("runner", "expected"),
+    [
+        pytest.param(_budget_hard_stop, "budget_exhausted", id="budget"),
+        pytest.param(_llm_timeout, "timeout", id="llm-timeout"),
+    ],
+)
+def test_classe_atravessa_o_json_do_shell_go(runner, expected, monkeypatch, tmp_path):
+    """Mesma classe pelo outro executor: stdout do CLI → corpo HTTP → `StageResult.detail`."""
+    import pipeline.orchestrator as orchestrator
+    from backend.app.services.pipeline.stage_failure_reason import reason_from_stage_detail
+    from backend.app.tasks.pipeline_task import _run_stage_once
+
+    monkeypatch.setattr(orchestrator, "_get_stage_runner", lambda _stage: runner)
+    ctx = SimpleNamespace(
+        pipeline_run_id="run", root=tmp_path, config_dir=None, shell_degraded=False
+    )
+    client = _http_client(_go_shell_running_the_cli(ctx), fallback=False)
+
+    result, error_msg, _tb, _reason = _run_stage_once(
+        ctx, "extract_baseline", lambda c, s: client.execute_stage(c, s, workspace_id="ws")
+    )
+
+    assert error_msg is None and result.success is False
+    assert reason_from_stage_detail(result.detail).value == expected
