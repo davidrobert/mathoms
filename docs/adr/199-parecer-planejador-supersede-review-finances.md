@@ -306,7 +306,8 @@ coincide com o bump 2.21.0 do manifest (#2117) se os dois entrarem antes do mesm
   > `tests/test_parecer_prompt_fingerprint.py` fixa, sem LLM, o sha256 do system
   > (`SYSTEM_PROMPT_SHA256`, junto de `PROMPT_VERSION`) e do user por regime de eviction
   > (`user_prompt_sha256` no manifest), sobre fixture congelada que cobre todo path do
-  > manifest menos dois ausentes deliberados. Cada pin mora no arquivo cuja versão governa:
+  > manifest menos um bloco key_value inteiro e um escalar, ausentes de propósito para
+  > exercitar os ramos de ausência. Cada pin mora no arquivo cuja versão governa:
   > byte muda ⇒ pin muda ⇒ o gate W2-T05 cobra o bump; refactor sem mudança de byte não
   > cobra nada. Por isso o user responde ao `version:` do manifest — e também a
   > `PROMPT_VERSION` quando a mudança é no `USER_PROMPT_TEMPLATE`. A byte-identidade que
