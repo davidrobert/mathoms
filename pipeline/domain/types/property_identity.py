@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Optional
+
+_SUBCODIGO_IMOVEL = re.compile(r"\d{2}")
 
 
 @dataclass(frozen=True)
@@ -14,6 +17,16 @@ class PropertyLookupKey:
     titular_key: str
     codigo_rfb: str
     endereco_canonical: Optional[str]
+
+    # Invariante de domínio, não espelho do VARCHAR(4): quem monta a chave normaliza
+    # antes (`subcodigo_imovel_rfb`). Grafia crua aqui é erro de programação — em
+    # Postgres ela só estouraria no INSERT, depois de commitadas as rows anteriores.
+    def __post_init__(self) -> None:
+        if not _SUBCODIGO_IMOVEL.fullmatch(self.codigo_rfb or ""):
+            raise ValueError(
+                f"expected codigo_rfb as 2-digit imóvel sub-code like '11', "
+                f"got {self.codigo_rfb!r}"
+            )
 
 
 @dataclass(frozen=True)

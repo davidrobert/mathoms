@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from backend.app.models import PropertyIdentity
 from backend.app.repositories.property_repository import all_property_identities_stmt
 from backend.app.services.supersession_chain import resolve_supersession_chain
+from pipeline.domain.services.baseline_item_classifier import subcodigo_imovel_rfb
 from pipeline.domain.services.canonical_fuzzy_match import (
     extract_complemento,
     matches_fuzzy,
@@ -131,8 +132,7 @@ def _candidates_strict(
     return [
         row
         for row in index.ordered
-        if row.codigo_rfb == lookup.codigo_rfb
-        and row.endereco_canonical == lookup.endereco_canonical
+        if _mesmo_subcodigo(row, lookup) and row.endereco_canonical == lookup.endereco_canonical
     ]
 
 
@@ -152,9 +152,9 @@ def _candidates_fuzzy(
     return sorted(hits, key=lambda row: row.superseded_at is not None)
 
 
-# A candidata precisa ser ela própria sem canonical: `codigo_rfb` é o código de
-# CATEGORIA da RFB (11 = imóveis), não uma identidade, então (titular, codigo_rfb)
-# casa com TODO imóvel da pessoa. Sem esta condição, um item sem canonical herdava
+# A candidata precisa ser ela própria sem canonical: `codigo_rfb` é o SUBTIPO da RFB
+# (11 = apartamento), não uma identidade, então (titular, codigo_rfb) casa com TODO
+# apartamento da pessoa. Sem esta condição, um item sem canonical herdava
 # o `property_id` — e o `endereco_canonical` — do imóvel legítimo da pessoa, e o
 # dedup seguinte fundia os dois: medido em 2026-08-17, o financiamento de -200k
 # desapareceu dentro do apartamento de 600k e o líquido saiu 200k a maior.
@@ -165,7 +165,7 @@ def _residual_unique(
     hits = [
         row
         for row in index.ordered
-        if row.titular_key == lookup.titular_key and row.codigo_rfb == lookup.codigo_rfb
+        if row.titular_key == lookup.titular_key and _mesmo_subcodigo(row, lookup)
     ]
     live = []
     seen: set[str] = set()
@@ -190,10 +190,17 @@ def _candidates_by_descricao(
     return [
         row
         for row in index.ordered
-        if row.codigo_rfb == lookup.codigo_rfb
+        if _mesmo_subcodigo(row, lookup)
         and row.endereco_canonical is None
         and (row.descricao_sample or "") == descricao_sample
     ]
+
+
+# A chave chega normalizada (`PropertyLookupKey` recusa grafia crua), mas a row pode
+# ter sido gravada antes da forma canônica — `'G01'`/`'1'` pelo produtor legado em
+# qualquer motor, `'01-11'` só em SQLite ([[ADR-225]] §Emenda 2026-10-08).
+def _mesmo_subcodigo(row: PropertyIdentity, lookup: PropertyLookupKey) -> bool:
+    return subcodigo_imovel_rfb(row.codigo_rfb) == lookup.codigo_rfb
 
 
 def _fuzzy_matches(

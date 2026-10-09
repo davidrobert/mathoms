@@ -55,6 +55,10 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html", "json-summary", "lcov"],
       reportsDirectory: "./coverage",
+      // Vitest ≥4 só conta arquivo carregado por teste quando `include` falta;
+      // o 3.x contava todo o src (`coverage.all`). Sem isto os thresholds
+      // abaixo afrouxariam calados — arquivo sem teste sumia do denominador.
+      include: ["src/**/*.{ts,tsx}"],
       exclude: [
         "node_modules/",
         ".next/",
@@ -82,7 +86,10 @@ export default defineConfig({
         "src/lib/**/*.ts": {
           lines: 65,
           functions: 45,
-          branches: 75,
+          // 75 → 71 ao subir para Vitest 5: mudou a régua, não o código. O v8
+          // passou a remapear pela AST — mesmo commit mede 746/864 (86,3%) no
+          // 3.x e 659/928 (71,0%) no 5.x. Piso = medido hoje, sem folga.
+          branches: 71,
           statements: 65,
         },
       },
@@ -94,11 +101,6 @@ export default defineConfig({
     },
     // Performance
     pool: "threads",
-    poolOptions: {
-      threads: {
-        singleThread: false,
-      },
-    },
     // Timeouts conservadores (unit deve ser rápido)
     testTimeout: 10_000,
     hookTimeout: 10_000,

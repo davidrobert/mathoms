@@ -183,6 +183,34 @@ backfill **aborta** grupo sem exatamente 1 âncora no baseline — e nenhuma das
 exatamente o que a [[ADR-386]] proibiu. Recomendação: **não podar** enquanto
 forem inertes.
 
+## DE-7 — `codigo_rfb` composto: o mesmo apartamento em duas grafias (2026-10-08, #2062)
+
+Desde a era 1.4.1 do prompt, o E1.5a emite o código do imóvel como `'01-11'` ou `'11'` para
+o mesmo apartamento. Em Postgres o INSERT de `'01-12'` estoura o `VARCHAR(4)` e derruba o
+E1.5c — reproduzido em PG 16 com o driver do worker —; entre eras, strict, amostra e
+residual não casavam. Decisão na [[ADR-225]] §Emenda 2026-10-08 (co-design com
+`data-engineer`).
+
+| # | Mudança | Onde |
+|---|---|---|
+| 1 | Sub-código de imóvel como forma única do campo; composto de outro grupo não tem chave | `baseline_item_classifier.py`, os dois produtores em `scripts/consolidate_baseline.py` |
+| 2 | Chave rejeita grafia crua; código sem sub-código vai a revisão com razão própria | `pipeline/domain/types/property_identity.py`, `property_identity_enricher.py` |
+| 3 | Strict, amostra e residual comparam o sub-código do lado da row | `db_property_identity_resolver.py` |
+| 4 | Os três alimentadores do dedup e o hard-delete leem a mesma forma | `real_estate_e5_integration.py`, `dev/backfill_property_supersession.py`, `dev/dedup_property_identity.py` |
+
+**Sem backfill.** No dogfood, 0 rows fora de `^\d{2}$`; em Postgres o composto nunca coube
+na coluna. As 4 órfãs sem canonical acima já gravam `11`/`12`: o par segue com 2 vivas, o
+residual segue ambíguo e a recomendação de não podar não muda.
+
+**Não fecha os 3 pares do run `40d1af2a`.** Sem mint e sem row a casar, item sem
+`property_id` nem canonical cai em `unidentified` no dedup, qualquer que seja o código —
+é a pré-condição para a âncora estruturada religar o mint, não o conserto dos pares
+([[A40.l113]] §Deferimento, item 4).
+
+**O rename de `descricao_sample`** (§Deferido abaixo) não entra aqui: esta mudança não
+toca a coluna, e uma migration num conserto P0 destruiria o bisect que o próprio item
+quer preservar.
+
 ## Deferido
 
 - **Rename `descricao_sample` → `descricao_fonte`** (dono: quem tocar identidade

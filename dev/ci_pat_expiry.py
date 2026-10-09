@@ -124,6 +124,11 @@ def measure_expiration(repo: str, now: datetime) -> datetime | None:
     return expires_at
 
 
+def _slack_line(expires_at: datetime) -> str:
+    """A data no log é o que a validação pós-rotação confere (~90 dias à frente)."""
+    return f"folga > {WARN_DAYS} dias (vence {expires_at:%Y-%m-%d %H:%M} UTC)"
+
+
 def check_pat_expiry(label: str, dry_run: bool) -> None:
     """Só mede com o PAT explícito: o fallback GITHUB_TOKEN vive ~1h e mentiria."""
     if os.environ.get("AUTOMERGE_KICK") != "1":
@@ -131,8 +136,9 @@ def check_pat_expiry(label: str, dry_run: bool) -> None:
         return
     now = datetime.now(timezone.utc)
     try:
-        warning = expiry_warning(measure_expiration(os.environ["GH_REPO"], now), now)
-        print(f"pat-expiry: {warning or f'folga > {WARN_DAYS} dias'}")
+        expires_at = measure_expiration(os.environ["GH_REPO"], now)
+        warning = expiry_warning(expires_at, now)
+        print(f"pat-expiry: {warning or _slack_line(expires_at)}")
         sync_issue(warning, now, label, dry_run)
     except (GhCallFailed, ValueError, KeyError) as exc:
         print(f"::warning title=pat-expiry sem medição::{exc} — o run segue (ADR-322)")

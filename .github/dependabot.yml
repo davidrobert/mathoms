@@ -56,6 +56,15 @@ updates:
       # tests/dev/test_dependabot_redis_ceiling.py reprova quando ele mudar.
       - dependency-name: "redis"
         versions: [">=6.5"]
+      # litellm congelado em 1.97 por decisão de produto (2026-10-09, #2135). É o
+      # gateway de TODAS as chamadas LLM do pipeline (extrações E1.5/E1.6/E2 e
+      # parecer), e o CI só as exercita com mock, então um bump muda o
+      # comportamento sem sinal. A partir de 1.98 ele traz boto3/botocore (~100 MB,
+      # AWS) sem uso no produto. `update-types`, e não regra nua: security updates
+      # seguem abrindo. Retomar quando houver advisory, quando faltar um provider ou
+      # feature, ou num upgrade deliberado validado com run real (pipeline-review).
+      - dependency-name: "litellm"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   - package-ecosystem: "pip"
     directory: "/backend"
@@ -84,6 +93,9 @@ updates:
       # Mesmo teto do kombu[redis] da entrada "/" — ver o comentário lá.
       - dependency-name: "redis"
         versions: [">=6.5"]
+      # litellm congelado — ver o comentário na entrada "/".
+      - dependency-name: "litellm"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
 
   # ----------------------------------------------------------------------
   # npm — frontend
@@ -105,6 +117,10 @@ updates:
         patterns: ["next", "react", "react-*", "@types/react*"]
       eslint-and-types:
         patterns: ["eslint*", "@typescript-eslint/*", "@types/*", "prettier*"]
+        # Major de @types/node acima do runtime reprova no node-version-parity:
+        # aqui dentro travaria o grupo inteiro. Fora dele, patch/minor caem no
+        # patch-and-minor e o major vem em PR isolado, vermelho até o .nvmrc subir.
+        exclude-patterns: ["@types/node"]
       vitest-and-test:
         patterns: ["vitest", "@vitest/*", "@testing-library/*", "@playwright/*", "playwright"]
       patch-and-minor:
@@ -223,6 +239,12 @@ updates:
         applies-to: version-updates
         patterns: ["*"]
 
+  # Major do `node` (aqui e em /frontend-ops): sem `ignore: semver-major` de
+  # propósito — vira estagnação muda. O hook `node-version-parity` deixa o PR
+  # vermelho até `<app>/.nvmrc` (lido pelo setup-node do CI) e o compose de dev
+  # subirem junto. NÃO comite no branch do Dependabot (ele para de rebasear e
+  # `@dependabot recreate` apaga o commit): abra PR humano com Dockerfile +
+  # .nvmrc + compose; o Dependabot fecha o dele sozinho.
   - package-ecosystem: "docker"
     directory: "/frontend"
     schedule:
@@ -309,3 +331,12 @@ updates:
     groups:
       actions-patch-and-minor:
         update-types: ["patch", "minor"]
+      # Major de actions/* sai num PR só, como o #2084: com PR por major, 9
+      # majors pendentes ocupavam o limite de 5 e as de terceiro ficavam sem
+      # vaga. Terceiros seguem individuais, porque cada um pede leitura de
+      # breaking change e update do registro (ADR-320). Major que quebrar no
+      # grupo sai por `ignore:` aqui, com motivo e data, e não por
+      # `@dependabot ignore`, que guarda a supressão fora do git.
+      actions-first-party-major:
+        patterns: ["actions/*"]
+        update-types: ["major"]
