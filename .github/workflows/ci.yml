@@ -1688,7 +1688,7 @@ jobs:
     if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.go == 'true'
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           # Patch EXATO: com spec solto ('1.26') o setup-go casa qualquer
           # 1.26.x já pré-instalado no tool cache do runner sem consultar o
@@ -1723,7 +1723,7 @@ jobs:
     if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.go == 'true'
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           # Patch EXATO: com spec solto ('1.26') o setup-go casa qualquer
           # 1.26.x já pré-instalado no tool cache do runner sem consultar o
