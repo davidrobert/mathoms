@@ -12,6 +12,8 @@
 #    2026-07-31 é STEP do job `changes`, não job próprio (FinOps: o GH
 #    fatura no mínimo 1 min por job e o scan leva ~15s). Full-history
 #    semanal + Issue automática ficam em security.yml (schedule).
+# 8. frontend-ops-checks (ESLint + tsc + next build do console interno) —
+#    só quando `frontend-ops/**` muda.
 #
 # Movido para nightly.yml (não bloqueia merge):
 # - frontend-lighthouse — perf/a11y/bp/seo é métrica, não correctness.
@@ -19,7 +21,7 @@
 #
 # Gates de merge (all-green):
 # - lint-all green
-# - pipeline-tests + backend-tests + frontend-checks green
+# - pipeline-tests + backend-tests + frontend-checks + frontend-ops-checks green
 # - changes green — inclui o gitleaks (sempre roda; secret entra por docs-only)
 # - E2E/visual green (quando rodam, opt-in)
 #
@@ -174,6 +176,7 @@ jobs:
     outputs:
       backend: ${{ steps.filter.outputs.backend_any_changed }}
       frontend: ${{ steps.filter.outputs.frontend_any_changed }}
+      frontend_ops: ${{ steps.filter.outputs.frontend_ops_any_changed }}
       pipeline: ${{ steps.filter.outputs.pipeline_any_changed }}
       pipeline_lib: ${{ steps.filter.outputs.pipeline_lib_any_changed }}
       any_code: ${{ steps.filter.outputs.any_code_any_changed }}
@@ -219,19 +222,25 @@ jobs:
               - 'backend/**'
               - 'requirements.in'
               - 'requirements.lock'
-              # A40.l18 — `frontend-ops/**` não está em NENHUM grupo (só em
-              # `any_code`), então esse app não tem verificação de TS em CI e a
-              # paridade do `types.ts` com o DTO vive num teste pytest
-              # (`test_frontend_ops_metrics_parity.py`). Sem esta linha, um PR que
-              # mova só o lado TS pula `backend-tests` e o gate não roda — falha
-              # ABERTA, mesma classe do comentário de `pipeline_lib` abaixo. CI
-              # própria do frontend-ops é lane separada (A42).
+              # A40.l18 — a paridade do `types.ts` do frontend-ops com o DTO vive
+              # num teste pytest (`test_frontend_ops_metrics_parity.py`). Sem esta
+              # linha, um PR que mova só o lado TS pula `backend-tests` e o gate
+              # não roda — falha ABERTA, mesma classe do comentário de
+              # `pipeline_lib` abaixo. O build/TS do app em si é do grupo
+              # `frontend_ops` (job `frontend-ops-checks`).
               - 'frontend-ops/src/lib/types.ts'
               - '.github/workflows/ci.yml'
             frontend:
               - 'frontend/**'
               - 'design-tokens/**'
               - 'config/report_layout.yaml'
+              - '.github/workflows/ci.yml'
+            # Sem `design-tokens/**`: o `tokens.css` do ops é gerado E commitado
+            # em `frontend-ops/src/styles/` (sync gateado por
+            # `design-tokens/build.py --check` no pre-commit), então mudança de
+            # token que o afeta já cai em `frontend-ops/**`.
+            frontend_ops:
+              - 'frontend-ops/**'
               - '.github/workflows/ci.yml'
             pipeline:
               - 'pipeline/**'
@@ -1138,6 +1147,51 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+  frontend-ops-checks:
+    # O console interno (ADR-116) não estava em workflow nenhum até 2026-10-08,
+    # quando o security update #2057 subiu `tailwindcss` 3→4 junto do fix de
+    # `next` e quebrou o `next build` do app — e entrou verde. ESLint e tsc
+    # passavam: só o `build` executa o PostCSS. Por isso o job builda (o
+    # follow-up 9 da A40.l18 prescrevia "sem build"; o incidente o refutou).
+    #
+    # Job próprio, não steps no `frontend-checks`: aquele roda ~8-9 min de
+    # Vitest + render e só quando `frontend` muda; este custa ~2-3 min e só
+    # roda quando `frontend-ops/**` muda. Sem Playwright.
+    name: Frontend-ops checks (ESLint + tsc + next build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: changes
+    if: needs.changes.outputs.incoming_main_docs_only != 'true' && needs.changes.outputs.frontend_ops == 'true'
+    defaults:
+      run:
+        working-directory: frontend-ops
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          # Paridade com os FROM do frontend-ops/Dockerfile: o job existe para
+          # prever o build da imagem. Bump do Dockerfile → bump aqui.
+          node-version: "26"
+          cache: npm
+          cache-dependency-path: frontend-ops/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Type-check (tsc --noEmit)
+        # Redundante com o type-check do `next build`, mas o erro sai legível.
+        run: npm run typecheck
+
+      - name: Build (next build)
+        run: npm run build
+
   frontend-e2e:
     name: Frontend E2E (Playwright + backend real)
     runs-on: ubuntu-latest
@@ -1734,6 +1788,7 @@ jobs:
       - backend-tests
       - migrations-postgres
       - frontend-checks
+      - frontend-ops-checks
       - frontend-visual
       - frontend-print-visual
       - go-lint
@@ -1743,13 +1798,14 @@ jobs:
       - name: Verify all required jobs passed or were skipped
         run: |
           fail=0
-          for job in lint-all pipeline-tests backend-tests migrations-postgres frontend-checks frontend-visual frontend-print-visual go-lint go-test; do
+          for job in lint-all pipeline-tests backend-tests migrations-postgres frontend-checks frontend-ops-checks frontend-visual frontend-print-visual go-lint go-test; do
             case "$job" in
               lint-all) result="${{ needs.lint-all.result }}" ;;
               pipeline-tests) result="${{ needs.pipeline-tests.result }}" ;;
               backend-tests) result="${{ needs.backend-tests.result }}" ;;
               migrations-postgres) result="${{ needs.migrations-postgres.result }}" ;;
               frontend-checks) result="${{ needs.frontend-checks.result }}" ;;
+              frontend-ops-checks) result="${{ needs.frontend-ops-checks.result }}" ;;
               frontend-visual) result="${{ needs.frontend-visual.result }}" ;;
               frontend-print-visual) result="${{ needs.frontend-print-visual.result }}" ;;
               go-lint) result="${{ needs.go-lint.result }}" ;;
