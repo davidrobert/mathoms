@@ -752,6 +752,12 @@ específico do dogfood e **não** existia sob `InProcess`:
 artefatos enquanto o worker escreve `pipeline_runs`/eventos, e SQLite WAL admite
 um escritor por vez. **1 ocorrência = rollback.**
 
+> **Correção 2026-10-08 ([[A42.l7]]).** "Não existia sob `InProcess`" era falso: o
+> loop Celery em Python produzia `database is locked` em todo stage LLM multi-call —
+> o `record_call` do `LLMCallLog` esbarrava no write-lock da sessão do stage e o aviso
+> era engolido. A lane passou a adiar esse registro até a sessão fechar; em log de
+> worker anterior à correção, a ocorrência **não** é sinal do shell Go.
+
 ---
 
 ## 12. Referências

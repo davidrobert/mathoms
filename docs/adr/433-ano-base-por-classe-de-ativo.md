@@ -32,7 +32,9 @@ tags:
 
 > **Emendada 2026-10-08:** a supressão do agregado que a §Consequências deferia "sobre a
 > escada de limiares da [[ADR-353]]" é decidida pela [[ADR-439]] **sem** a escada — o
-> veredito é categórico por balde. D1–D3 desta ADR seguem de pé.
+> veredito é categórico por balde. D1–D3 desta ADR seguem de pé. **Corrigida no mesmo dia:**
+> a §Consequências manda marcar `comparison_base_changed` no rebaseline, e rebaseline
+> nenhum o marca — §Correção 2026-10-08.
 
 ## Contexto
 
@@ -149,6 +151,7 @@ conservadora aqui; há escolha honesta.
   relatório não pode narrá-la como ganho ([[ADR-190]] §Emenda 2026-08-10). ⚠️ Aquela regra
   só age sob `comparison_base_changed`, e **nada nesta ADR liga o flag**: quem rebaselinar
   o snapshot precisa marcá-lo, senão a proteção é nominal.
+  ⚠️ *Corrigido em 2026-10-08:* o diagnóstico procede, o remédio não existe — §Correção 2026-10-08.
 - `titular_data["ano_base"]` passa a ser o **menor** ano eleito entre as classes (frescor
   nunca superestimado, [[ADR-410]] D6), com `ano_base_por_classe` ao lado — que é a
   "datas por linha" da [[ADR-383]] §6.
@@ -195,3 +198,22 @@ só sem imóvel em aberto.
 Uma medição desta ADR também não sobrevive: `cobertura_classificacao_imovel` era citada
 como "a fatia fica mensurável", mas **nenhum código de produção a chamava**. Ela passa a ser
 publicada pela [[ADR-439]] D1.
+
+## Correção 2026-10-08 — o flag não se marca por rebaseline
+
+Achada no closeout da [[A40.l113]]. A §Consequências prescreve que *"quem rebaselinar o
+snapshot precisa marcá-lo"*. Não há como: `comparison_base_changed` é derivado em runtime, no
+par de relatórios, pelo proxy de presença de `fluxo_caixa.consolidacao_cross_documento`
+([[ADR-190]] §Emenda 2026-08-10, item 5; `_base_de_comparacao_mudou`), e rebaseline nenhum o
+liga.
+
+O diagnóstico ao lado segue de pé — para esta ADR a proteção é nominal. A D1 move os
+componentes de `patrimonio.liquido` (residência, outros imóveis e dívidas do titular:
+[[A40.l113]] §Contrafactuais medidos), e o proxy não vê a mudança, porque os dois lados do par
+têm o bloco cross-documento. O remédio é o predicado por identificador de método no artefato,
+deferido no §W6 do [[PLAN-snapshot-changelog-v3]] com gatilho *"[[A42.l5]] abrir ou a 2ª
+mudança de método"*. A D1 é candidata a esse gatilho e nenhum registro a anotou até aqui; a
+nota datada está no §W6, e a decisão de reabrir é do plano.
+
+A [[ADR-439]] repetiu o engano ("o rebaseline marca o flag") e o corrigiu na mesma data; lá o
+flag não precisa disparar, porque nenhuma métrica do changelog se move.

@@ -8,7 +8,7 @@ date: "2026-05-06"
 relates_to: ["[[ADR-024]]", "[[ADR-025]]", "[[ADR-061]]", "[[ADR-122]]"]
 supersedes: []
 superseded_by: []
-amended_at: ["2026-07-07", "2026-07-15"]
+amended_at: ["2026-07-07", "2026-07-15", "2026-10-08"]
 aliases: ["ADR 173"]
 tags:
   - area/llm
@@ -28,6 +28,10 @@ size_lines: 35
 > de FinOps de LLM; `pipeline_run_costs` deprecada em 3 fases (0 auditoria → 1
 > parar de escrever → soak ≥1 mês → 2 drop + snapshot). Budget hard-stop
 > **inalterado**. Ver §Emenda 2026-07-15 ao final.
+>
+> **Emendada em 2026-10-08 ([[A42.l7]])** — em engine de writer único (SQLite) o
+> `LLMCallLog` do run é adiado até a sessão do stage fechar, e o hard-stop soma o
+> pendente. Postgres inalterado. Ver §Emenda 2026-10-08 ao final.
 
 **Status:** Decidido (W3-T01) • **Data:** 2026-05-06 • **Relaciona** [ADR-024](#adr-024--litellm-como-proxy-universal), [ADR-025](#adr-025--byok-bring-your-own-key), [ADR-061](#adr-061--telemetria-privacy-first), [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm). **Origem:** SR-006 + DE-013 (W3-T01).
 
@@ -127,3 +131,29 @@ portabilidade Art.18). **Não há read-side a repontar**; o que o titular recebe
 **não muda**. A única ação LGPD é remover a chave do allowlist, **acoplada e
 atômica** com a deleção do model (senão `test_lgpd_export_coverage.py` fica
 vermelho — valida `EXPORT_EXCLUDED_TABLES ⊆ Base.metadata.tables`).
+
+## Emenda 2026-10-08 ([[A42.l7]]) — `LLMCallLog` adiado em engine de writer único
+
+**Contexto.** No DB de dogfood (runs pós-hook), stages de 1 call batem o custo que o
+próprio stage declara em 89 de 95 runs; os multi-call (`extract_baseline`, 10 calls;
+`extract_irpf_full`, 4) em **0**, com o ledger em ~30% do declarado. A sessão de
+artefatos do stage ([[ADR-256]]) segura o write-lock do SQLite do 1º `store.write`
+até o commit, e o `record_call` de sessão própria esperava o `busy_timeout` (30s) e
+se perdia em aviso. Engine separado não escapa: SQLite tem um writer por arquivo.
+
+**Decisão.** (1) Os hooks de um run (`LLMBudgetService.for_pipeline_run`, na raiz de
+composição) **adiam** a row só em engine de writer único; `id` e `created_at` nascem
+na call. Postgres grava na hora, inalterado. (2) Todo executor grava o lote logo
+**depois** de fechar a sessão do stage — commit ou rollback, o gasto aconteceu —, no
+`HydratedContext.close()` e no fim do run. (3) `check_budget` soma o pendente do
+mês; o lote sai do pendente antes do commit e volta se falhar (subcontar por
+instantes cabe no burst desta ADR; contar em dobro abortaria run pago). (4) Re-flush
+é idempotente (`ON CONFLICT (id)`); falha nunca aborta nem silencia — ERROR
+`mathoms.llm.call_log_persist_failed`, campos tipados e dead-letter sem PII.
+
+**Rejeitadas:** a sessão do stage (rollback apaga gasto real); adiar também no
+Postgres (perde durabilidade em SIGKILL/OOM/redelivery, sem ganho); fast-fail com
+fallback (PRAGMA em conexão de pool — o do heartbeat vaza). **Residual:** contenção
+entre processos no SQLite (flush retido + dead-letter); crash no meio do stage perde
+o pendente (só SQLite); caminho Postgres raciocinado, não medido; reconciliação
+memória↔ledger no fim do run é o item 6 da lane.
