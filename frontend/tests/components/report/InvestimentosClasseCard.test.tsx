@@ -20,8 +20,9 @@ describe("<InvestimentosClasseCard />", () => {
     );
     expect(screen.getByText("Imóveis Investimento")).toBeInTheDocument();
     expect(screen.getByText("Renda Fixa")).toBeInTheDocument();
-    expect(screen.getByText("76.9%")).toBeInTheDocument();
-    expect(screen.getByText("23.1%")).toBeInTheDocument();
+    expect(screen.getByText("76,9%")).toBeInTheDocument();
+    expect(screen.getByText("23,1%")).toBeInTheDocument();
+    expect(screen.queryByText("76.9%")).not.toBeInTheDocument();
   });
 
   it("mostra fallback quando tabela_classes está vazia", () => {

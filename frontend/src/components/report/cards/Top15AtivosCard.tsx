@@ -3,6 +3,7 @@
 import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import { cn } from "@/lib/cn";
+import { formatPercent } from "@/lib/format";
 
 export interface TopAtivo {
   posicao: number;
@@ -82,7 +83,7 @@ function PctCarteiraCell({
         />
       </div>
       <span className="w-12 text-right font-mono text-xs tabular-nums">
-        {pct.toFixed(1)}%
+        {formatPercent(pct)}
       </span>
     </div>
   );
@@ -95,7 +96,6 @@ function deriveInsight(rows: TopAtivo[]): string | undefined {
   const top3Pct = rows
     .slice(0, 3)
     .reduce((acc, r) => acc + r.pct_carteira, 0);
-  const fmtPct = (n: number) => `${n.toFixed(1)}%`;
   const fmtBrl = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -103,9 +103,9 @@ function deriveInsight(rows: TopAtivo[]): string | undefined {
   });
   const valorTop1 = fmtBrl.format(top1.valor);
   if (pct1 > 25) {
-    return `Atenção: ${top1.nome} concentra ${fmtPct(pct1)} da carteira (${valorTop1}). Considere diversificação — top 3 somam ${fmtPct(top3Pct)}.`;
+    return `Atenção: ${top1.nome} concentra ${formatPercent(pct1)} da carteira (${valorTop1}). Considere diversificação — top 3 somam ${formatPercent(top3Pct)}.`;
   }
-  return `${top1.nome} é o maior ativo individual (${fmtPct(pct1)} = ${valorTop1}). Top 3 somam ${fmtPct(top3Pct)} da carteira.`;
+  return `${top1.nome} é o maior ativo individual (${formatPercent(pct1)} = ${valorTop1}). Top 3 somam ${formatPercent(top3Pct)} da carteira.`;
 }
 
 const CARD_TITLE = "Top 15 Ativos da Carteira";
