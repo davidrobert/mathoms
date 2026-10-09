@@ -179,7 +179,7 @@ corpo real. O aceite "10/10 seções no E5 real" regrediu calado por seis semana
 
 **D1 (substituído).** O budget é dimensionado com **folga ≥ 20% sobre a demanda medida** no
 E5 real e re-medido quando o X8 da rodada unificada acusar **folga < 15%** ou qualquer seção
-evictada. Valor decidido: 24576, aplicado com o manifest 2.22.0 (PR-2 da [[A40.l124]]). Não
+evictada. Valor vigente: 24576, no manifest 2.22.0 ([[A40.l124]], #2173). Não
 reabre a alternativa rejeitada ("só subir o cap"): a eviction do D2 segue sendo a rede, agora
 visível.
 

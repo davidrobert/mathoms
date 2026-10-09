@@ -4,13 +4,15 @@ type: lane
 title: "O parecer não vê independência financeira nem investimentos desde agosto: o corpo pede ~20 KB contra 16 KB, a eviction é muda e o teste que a vigia mede 40% do tamanho real"
 sprint: A40
 plan: PLAN-report-trust
-status: in_progress
+status: shipped
+ship_pr: 2173
+ship_date: "2026-10-09"
 priority: P1
 branch_slug: parecer-exec-context-orcamento
 owner: prompt-engineer
 depends_on: []
 adrs: ["[[ADR-341]]", "[[ADR-340]]"]
-tags: [type/lane, sprint/a40, status/in-progress, priority/p1, area/llm]
+tags: [type/lane, sprint/a40, status/shipped, priority/p1, area/llm]
 ---
 
 # A40.l124 — `parecer-exec-context-orcamento`
@@ -63,13 +65,13 @@ degradação por parecer retido.
 
 ## Decisão
 
-| peça | PR | decisão |
-|---|---|---|
-| Telemetria | 1 | `ExecContextBudget` medido do MESMO plano de eviction que montou o corpo (bytes pedidos/enviados, por seção, evictadas em ordem, corte degenerado, hints e catálogo). Evento `parecer_planejador_exec_context` antes da chamada, WARNING sob eviction. Persistido no status do stage ⇒ `pipeline_stage_logs.output_summary` (texto claro) nos dois desfechos — **não** no `_meta`, que é cifrado (`data-engineer`). Cache hit lê do envelope; recomputar descreveria um corpo que o modelo não viu, porque o distiller não compõe a chave |
-| Leitor | 1 | X8 da rodada unificada: seções fora do corpo + folga < 15%. Ausente ⇒ INAPLICAVEL, nunca verde |
-| Orçamento | 2 | cap 16384 → 24576, pela regra de folga da [[ADR-341]] §Emenda 2026-10-09 |
-| `top_ativos` | 2 | `max_rows` 15 → 5, e o cabeçalho de tabela passa a dizer "top 5 de N" |
-| Catálogo | 2 | `citation_catalog.max_bytes` 2600 → 3400 (joelho re-medido, protocolo da A40.l83) |
+| peça | decisão |
+|---|---|
+| Telemetria | `ExecContextBudget` medido do MESMO plano de eviction que montou o corpo (bytes pedidos/enviados, por seção, evictadas em ordem, corte degenerado, hints e catálogo). Evento `parecer_planejador_exec_context` antes da chamada, WARNING sob eviction. Persistido no status do stage ⇒ `pipeline_stage_logs.output_summary` (texto claro) nos dois desfechos — **não** no `_meta`, que é cifrado (`data-engineer`). Cache hit lê do envelope; recomputar descreveria um corpo que o modelo não viu, porque o distiller não compõe a chave |
+| Leitor | X8 da rodada unificada: seções fora do corpo + folga < 15%. Ausente ⇒ INAPLICAVEL, nunca verde |
+| Orçamento | cap 16384 → 24576, pela regra de folga da [[ADR-341]] §Emenda 2026-10-09 |
+| `top_ativos` | `max_rows` 15 → 5, título nomeando o corte do produtor (lista até 15), e o cabeçalho de tabela passa a dizer "top N de M" |
+| Catálogo | `citation_catalog.max_bytes` 2600 → 3400 (joelho re-medido, protocolo da A40.l83) |
 
 **Os dois knobs não são enxugamento: são o preço de devolver as seções.** Medido no E5 real com
 o cap novo: com 15 linhas de `top_ativos`, ancoráveis caem de 33/36 (91,7%) para 33/50 (66,0%)
@@ -77,17 +79,21 @@ o cap novo: com 15 linhas de `top_ativos`, ancoráveis caem de 33/36 (91,7%) par
 catálogo pega só as 5 maiores de cada lista. Com 5 linhas e 3400 B: **40/41 (97,6%)**, demanda
 18787 B, folga 23,6%. Sem eles a lane fecharia a eviction e reabriria a classe da A40.l83.
 
-## Critério de aceite
+## Critério de aceite — itens 1 a 5 batidos em 2026-10-09 (#2173)
 
-1. Com eviction forçada, o orçamento publicado nomeia as mesmas seções que o marcador enviado
-   ao modelo, e remover a escrita reprova — **7 mutações do PR-1 pegam**.
-2. X8 com os três desfechos provados: corpo inteiro ⇒ verde; seção fora ⇒ achado; ausente ⇒
-   INAPLICAVEL.
-3. Medição in-process no E5 real com o manifest 2.22.0: 10/10 seções, folga ≥ 20% e ancoráveis
-   ≥ 91,7% (o valor de antes da lane). Registrar ponteiro + relação aqui.
-4. O teste "10/10" declara o próprio limite, e o aceite da A40.l85 passa a incluir bytes.
-5. Emenda datada da [[ADR-341]]: D1 vira regra de folga; telemetria vira contrato.
-6. PRs mergeados em `main` com CI verde.
+1. ✅ Com eviction forçada, o orçamento publicado nomeia as mesmas seções que o marcador enviado
+   ao modelo, e remover a escrita reprova: **7 mutações do produtor** pegam (stage sem a escrita,
+   resultado sem o orçamento, envelope lido ou gravado sem ele, evento sempre INFO, ids fora de
+   ordem, corte degenerado não declarado).
+2. ✅ X8 com os três desfechos provados — e **3 mutações do leitor** pegam. No run `40d1af2a`
+   (anterior à telemetria) ele sai `INAPLICAVEL`, como deve.
+3. ✅ Medição in-process no E5 do run `40d1af2a`, sanitizado, com o manifest 2.22.0: **10/10
+   seções** (eram 7/10), folga **23,3%**, ancoráveis **40/41 — 97,6%** (eram 33/36), catálogo
+   44 de 60 entradas em 3340 B. Sem corte degenerado.
+4. ✅ O teste "10/10" declara que mede o mecanismo; o aceite da [[A40.l85]] passa a incluir bytes.
+5. ✅ Emenda datada da [[ADR-341]]: D1 vira regra de folga; D7 publica a eviction.
+6. PR #2173 mergeado em `main` com CI verde — único PR da lane (o plano de dois PRs caiu quando o
+   #2117 mergeou antes).
 
 **Predição registrada antes da regeneração (observação, não gate — a §Emenda 2026-09-01 da
 [[ADR-341]] veta contar `campos_faltantes` como critério):** no primeiro parecer gerado com o
