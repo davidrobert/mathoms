@@ -126,7 +126,7 @@ describe("ApendiceBSection — premissas_economicas (ADR-219)", () => {
     expect(screen.getByText("FIIs")).toBeInTheDocument();
   });
 
-  it("formata retorno e sigma como '%.2f% a.a.'", () => {
+  it("formata retorno e sigma com 2 casas e vírgula decimal ('7,00% a.a.')", () => {
     render(
       <ApendiceBSection
         data={makeData({
@@ -139,8 +139,9 @@ describe("ApendiceBSection — premissas_economicas (ADR-219)", () => {
         })}
       />,
     );
-    expect(screen.getByText("7.00% a.a.")).toBeInTheDocument();
-    expect(screen.getByText("22.00% a.a.")).toBeInTheDocument();
+    expect(screen.getByText("7,00% a.a.")).toBeInTheDocument();
+    expect(screen.getByText("22,00% a.a.")).toBeInTheDocument();
+    expect(screen.queryByText("7.00% a.a.")).not.toBeInTheDocument();
   });
 
   it("classe code desconhecido (operador adicionou via console) cai no fallback", () => {

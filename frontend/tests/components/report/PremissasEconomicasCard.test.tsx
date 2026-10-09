@@ -95,7 +95,8 @@ describe("PremissasEconomicasCard — tabela parcial/completa", () => {
     );
     expect(screen.getByRole("table")).toBeInTheDocument();
     expect(screen.getByText("Caixa / Liquidez")).toBeInTheDocument();
-    expect(screen.getByText("6.00% a.a.")).toBeInTheDocument();
+    expect(screen.getByText("6,00% a.a.")).toBeInTheDocument();
+    expect(screen.queryByText("6.00% a.a.")).not.toBeInTheDocument();
     expect(screen.getAllByText(/Premissa indisponível/)).toHaveLength(1);
   });
 

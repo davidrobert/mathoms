@@ -11,7 +11,7 @@ import { MonetaryValue } from "../MonetaryValue";
 import { AcumuladoresBanner } from "../AcumuladoresBanner";
 import { DefasagemWarningBanner } from "../DefasagemWarningBanner";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatPercent } from "@/lib/format";
 import { deriveChartConclusion } from "../utils/conclusionUtils";
 import { EmptyState } from "@/components/EmptyState";
 import { AlertTriangle, FileText, Info, Wallet } from "lucide-react";
@@ -162,7 +162,7 @@ function ProgressoStat({ goals }: { goals: Record<string, unknown> }) {
       />
     );
   }
-  return <Stat label="Progresso" value={`${pct.toFixed(1)}%`} />;
+  return <Stat label="Progresso" value={formatPercent(pct)} />;
 }
 
 /** N3 — Bloco do cone de probabilidade Monte Carlo (P10/P50/P90). */
@@ -415,7 +415,7 @@ function TrsEfetivaStat({ data }: { data: PassiveIncomeData }) {
           />
         </span>
       }
-      value={`${data.trs_efetiva_pct.toFixed(1)}%`}
+      value={formatPercent(data.trs_efetiva_pct)}
       tone="neutral"
       sublabel={defasagemNote}
     />
