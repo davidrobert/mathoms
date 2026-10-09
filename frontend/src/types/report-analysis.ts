@@ -98,6 +98,8 @@ export interface ExposicaoCambialData {
   por_moeda: ExposicaoCambialPorMoeda[];
   tier: "verde" | "amarelo" | "vermelho" | "empty";
   detalhes: ExposicaoCambialDetalhe[];
+  /** ADR-403 D3 — v1 mede só caixa em moeda forte; v2 soma a carteira com lastro. */
+  definicao_versao?: 1 | 2;
 }
 
 export interface ReservaEmergenciaData {
