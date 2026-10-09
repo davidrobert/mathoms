@@ -8,7 +8,7 @@ import { MonetaryValue } from "../MonetaryValue";
 //    computado no backend; o card apenas renderiza. ──
 export type ComparableClasse = "renda_fixa" | "acoes_br" | "acoes_int" | "fiis" | "fora_alvo";
 export type SeverityLevel = "alinhado" | "atencao" | "rebalancear" | "neutro";
-export type BadgeSeverity = "alinhado" | "atencao" | "rebalancear" | "sem_alvo";
+export type BadgeSeverity = "alinhado" | "atencao" | "rebalancear" | "sem_alvo" | "sem_indicacao";
 
 export interface AlocacaoComparavel {
   classe: ComparableClasse;
@@ -38,6 +38,9 @@ export interface AlocacaoDerived {
   has_alvo: boolean;
   rf_comparacao: string;
   alvo_renormalizado_defensivo: boolean;
+  /** Preenchido quando o produtor não emite a indicação de aporte ([[ADR-394]]
+   *  §Emenda · [[ADR-400]]). `comparaveis` sobrevive: é descrição. */
+  motivo_supressao?: string | null;
 }
 
 const CLASSE_LABEL: Record<ComparableClasse, string> = {
@@ -99,6 +102,10 @@ const BADGE_COLOR: Record<BadgeSeverity, { bg: string; fg: string }> = {
     fg: "var(--semantic-loss-on-tint)",
   },
   sem_alvo: {
+    bg: "var(--surface-muted)",
+    fg: "var(--surface-muted-foreground)",
+  },
+  sem_indicacao: {
     bg: "var(--surface-muted)",
     fg: "var(--surface-muted-foreground)",
   },

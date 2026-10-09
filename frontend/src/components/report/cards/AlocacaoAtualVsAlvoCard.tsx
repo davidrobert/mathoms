@@ -16,6 +16,7 @@ import {
   type AlocacaoDerived,
   type BadgeSeverity,
 } from "./alocacaoCardParts";
+import { motivoDaSupressao, rodapeDaSupressao } from "./alocacaoSupressao";
 
 export type { AlocacaoDerived } from "./alocacaoCardParts";
 
@@ -27,11 +28,17 @@ export interface AlocacaoAtualVsAlvoCardProps {
   llmFooter?: string | null;
 }
 
-function computeBadge(
-  hasAlvo: boolean,
-  rows: readonly AlocacaoComparavel[],
-): { severity: BadgeSeverity; label: string } {
-  if (!hasAlvo) return { severity: "sem_alvo", label: "Sem alvo definido" };
+type CardBadge = { severity: BadgeSeverity; label: string };
+
+function computeBadge(derived: AlocacaoDerived): CardBadge {
+  if (!derived.has_alvo) return { severity: "sem_alvo", label: "Sem alvo definido" };
+  if (motivoDaSupressao(derived)) {
+    return { severity: "sem_indicacao", label: "Aporte não indicado" };
+  }
+  return badgePorSeveridade(derived.comparaveis);
+}
+
+function badgePorSeveridade(rows: readonly AlocacaoComparavel[]): CardBadge {
   const rebalancear = rows.filter((r) => r.severity === "rebalancear").length;
   const atencao = rows.filter((r) => r.severity === "atencao").length;
   if (rebalancear > 0) {
@@ -76,11 +83,15 @@ function buildDeterministicFooter(
   return desalinhadoFooter(derived);
 }
 
+// Sob supressão o rodapé sai do campo estruturado, nunca do E5N: artefato
+// gravado antes do narrador saber a causa atribui toda supressão à classe.
 function pickFooter(
   derived: AlocacaoDerived,
   badge: BadgeSeverity,
   llmFooter: string | null | undefined,
 ): string {
+  const motivo = motivoDaSupressao(derived);
+  if (badge === "sem_indicacao" && motivo) return rodapeDaSupressao(motivo);
   const fromLLM = llmFooter?.trim();
   if (fromLLM) return fromLLM;
   return buildDeterministicFooter(derived, badge);
@@ -187,7 +198,7 @@ export function AlocacaoAtualVsAlvoCard({
     (r) => r.classe !== "fora_alvo" || r.valor_brl > 0,
   );
   if (rows.length === 0 && reserva <= 0) return null;
-  const badge = computeBadge(derived.has_alvo, derived.comparaveis);
+  const badge = computeBadge(derived);
   const footer = pickFooter(derived, badge.severity, llmFooter);
   const showFootnote = rows.some((r) => r.classe === "fora_alvo");
   return (
