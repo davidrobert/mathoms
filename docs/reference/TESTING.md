@@ -667,11 +667,11 @@ cobre conteúdo é `print-text.@critical.spec.ts` (camada de texto via
 
 ### Tolerância — `maxDiffPixelRatio` proporcional
 
-Spec usa razão, **nunca** `maxDiffPixels` absoluto — a última tolerância absoluta (a da capa) saiu na [[A40.l103]] (#1859). Dois valores: `0.025` no helper de seção e `0.0003` em `cover` / `sumario-executivo`.
+Spec usa razão, **nunca** `maxDiffPixels` absoluto — a última tolerância absoluta (a da capa) saiu na [[A40.l103]] (#1859). Todo valor é **medido nos dois extremos** (piso de ruído, menor mudança que precisa reprovar): `0.00003` no helper de seção e `0.0003` em `cover` / `sumario-executivo` / `parecer-metricas-print`. Pares e sondas em [VISUAL_SNAPSHOTS.md](../plan/REPORT_PREMIUM/VISUAL_SNAPSHOTS.md) §Tolerância.
 
-A razão histórica do `0.025` era "chart.js canvas tem variance natural de 1-2% entre runs no mesmo runner Linux". **Essa premissa não se reproduz mais** (medido 2026-08-30, A40.l103): dois `workflow_dispatch` do **mesmo SHA** devolveram as 28 baselines **byte-idênticas** — zero diferença entre runs, n=2. O que o `0.025` absorve hoje não é ruído entre runs; é reflow **dirigido por commit** (1px de deslocamento marca 9,58% numa imagem curta, e o realinhamento `dy=±1` zera). O threshold absoluto de 200px (~0.007% em S2) gerava flake crônico e continua sendo a razão de não voltar.
+A razão histórica do antigo `0.025` do helper era "chart.js canvas tem variance natural de 1-2% entre runs no mesmo runner Linux". **Essa premissa não se reproduz** (medido 2026-08-30 na A40.l103, e de novo em 2026-10-09 no Playwright 1.59, 1.60 e 1.63): dois `workflow_dispatch` do **mesmo SHA** devolvem todas as baselines **byte-idênticas**. O que o `0.025` absorvia não era ruído entre runs; era reflow **dirigido por commit** (1px de deslocamento marca 9,58% numa imagem curta, e o realinhamento `dy=±1` zera) — e, junto, a deriva: em 2026-10-09, 19 das 26 baselines de seção estavam velhas sob ele, sem sinal. O threshold absoluto de 200px (~0.007% em S2) gerava flake crônico e continua sendo a razão de não voltar.
 
-> Consequência prática: `0.025` é folga grande demais para imagem pequena — foi por isso que `cover` e `sumario-executivo` mediram a própria tolerância (`0.0003`) em vez de herdar. Re-calibrar o `0.025` é lane própria (ver §Fora de escopo da [[A40.l103]]).
+> Consequência prática: com a tolerância medida, reflow de 1px **reprova**. O custo é rebaseline atribuída no PR que causou o reflow, não verde cego.
 
 **Cuidado ao combinar com `maxDiffPixels` absoluto:** Playwright usa `Math.min(absoluto, ratio×area)`. O piso absoluto anula o ratio em imagens grandes. Use **só** ratio.
 
@@ -679,7 +679,7 @@ A razão histórica do `0.025` era "chart.js canvas tem variance natural de 1-2%
 
 PRs que alteram dimensões/layout do `<article>` do report devem:
 1. Fazer a mudança em código.
-2. Disparar `workflow_dispatch` com `update_visual_baselines=true` na mesma branch.
+2. Apagar as baselines do spec na branch e disparar `workflow_dispatch` com `update_visual_baselines=true` — o `--update-snapshots` do CI só reescreve a baseline que reprova, e sem apagar a irmã com diff sob a tolerância fica velha ([VISUAL_SNAPSHOTS.md](../plan/REPORT_PREMIUM/VISUAL_SNAPSHOTS.md) §Fluxo de baseline).
 3. Commitar os baselines refreshed no mesmo PR.
 
 Anti-padrão histórico (#147, #148, #150, #151, #153, #155, #169, #160): cada um disse "snapshot precisará ser regenerado em CI" e mergeou sem fazer. Resultado: gate visual ficou crônicamente vermelho em main, e PRs subsequentes herdaram débito que não introduziram. PR #174 (2026-05-10) fechou ~24 baselines de drift acumulado.
