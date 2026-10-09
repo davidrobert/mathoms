@@ -218,3 +218,13 @@ detail do stage). Antes da E3, um hit após editar a persona fazia os dois diver
 coluna recebia o hash atual e o artifact guardava o de quando gerou. Agora são iguais por
 construção. O parágrafo final da persona repete o caminho `_meta`; corrige-se na mesma
 edição material que remove o placeholder.
+
+> **Fechado em 2026-10-09** ([#2207](https://github.com/davidrobert/mathoms/pull/2207)),
+> junto da `PROMPT_VERSION` 2.5.1: o placeholder saiu do frontmatter, e o 1º parágrafo do
+> §10 da persona saiu inteiro em vez de reescrito — nada nele servia ao modelo, e
+> reescrevê-lo trocaria uma afirmação de engenharia sem gate (esta errou duas vezes) por
+> outra. `persona_hash` saiu também de `persona.required_frontmatter_fields` do manifest,
+> que nenhum código lê. Com o system pinado ao lado de `PROMPT_VERSION` ([[ADR-199]]
+> §Emenda 2026-10-09), editar a persona passa a exigir edição de
+> `pipeline/llm/prompts/parecer_planejador.py` e bump — deixa de valer, em §Consequências,
+> "Persona evolui sem mudança de código Python — PR docs-only".

@@ -10,6 +10,13 @@ from __future__ import annotations
 #   urgente determinístico: acima de 50% "Média", acima de 75% "Alta". O tema cobre o
 #   argumento de iliquidez porque `Liquidez` está fora de `_TEMA_CONCENTRACAO` e bloqueava
 #   com a severidade certa. Paridade cobrada em tests/test_parecer_rl7_regua_unica.py.
+# 2.5.1 ([[ADR-199]] §Emenda 2026-10-09 · [[ADR-201]] §Correção 2026-10-09): a persona
+#   perde o placeholder `persona_hash: "PENDING_AUTO_GENERATE"` do frontmatter e o 1º
+#   parágrafo do §10, que afirmava um caminho de auditoria inexistente
+#   (`PlannerReview._meta.persona_hash`). PATCH (ADR-233): nada do que o modelo segue
+#   muda. Estreia `SYSTEM_PROMPT_SHA256` abaixo — a partir daqui, byte do system que muda
+#   sem bump reprova, e o `27bcd6d7` (persona editada sem bump, janela do drift
+#   misturando dois regimes) deixa de ser possível.
 # 2.5.0 (A40.l117 · [[ADR-341]] §Emenda 2026-09-01): a regra 3 deixa de prometer
 #   ferramenta. Medido: `LLMService.call` não tem parâmetro `tools` (litellm_client.py:133)
 #   e as 19 entradas de `_meta.tool_trace` do run 40d1af2a são todas pós-LLM — o
@@ -29,6 +36,13 @@ from __future__ import annotations
 #   Ao recalibrar parecer_red_lines, atualize a REGRA 14 no mesmo PR (simetria prompt↔validador).
 # 2.0.0 (ADR-296): citação determinística — prosa sem R$, contrato ancoras[{path,rotulo}].
 PROMPT_VERSION = "2.6.0"
+
+# sha256 do system prompt RENDERIZADO — `SYSTEM_PROMPT_TEMPLATE` com a persona inteira,
+# frontmatter incluso. A persona mora fora deste arquivo e o gate W2-T05 só enxerga este:
+# o pin a traz para dentro. Mudou o byte, reprova `tests/test_parecer_prompt_fingerprint.py`
+# até o pin mudar aqui — e editar aqui cobra bump de `PROMPT_VERSION`. Par do
+# `user_prompt_sha256` do manifest (ADR-199 §Emenda 2026-10-09).
+SYSTEM_PROMPT_SHA256 = "f819258b4d9a2febcab643b2256da6b9abf4ad1e927a630197c908e8122ffee7"
 
 # Amostragem do parecer — mora aqui, e não no orquestrador, porque este módulo é
 # varrido por `check_prompt_version_bumped.py`: re-afinar a amostragem sem bumpar
