@@ -471,6 +471,15 @@ describe("<S7IndependenciaSection /> · gate do bloco de stats de IF", () => {
     expect(screen.getByText("Progresso")).toBeInTheDocument();
   });
 
+  it("Progresso formata o percentual com vírgula decimal (pt-BR)", () => {
+    const data = makeData({
+      goals: { if_pct: 37.25 },
+    } as Partial<ReportAnalysisData>);
+    render(<S7IndependenciaSection data={data} />);
+    expect(screen.getByText("37,3%")).toBeInTheDocument();
+    expect(screen.queryByText("37.3%")).not.toBeInTheDocument();
+  });
+
   it("goals completo continua renderizando o bloco (não-regressão)", () => {
     render(<S7IndependenciaSection data={makeData()} />);
     expect(screen.getByText("Meta IF")).toBeInTheDocument();
@@ -503,7 +512,8 @@ describe("<S7IndependenciaSection /> · sem alvo de retorno", () => {
 
   it("o valor observado continua visível — sustenta-se sem meta", () => {
     render(<S7IndependenciaSection data={makeData()} />);
-    expect(screen.getByText("2.4%")).toBeInTheDocument();
+    expect(screen.getByText("2,4%")).toBeInTheDocument();
+    expect(screen.queryByText("2.4%")).not.toBeInTheDocument();
   });
 
   // A copy do tooltip é asserida na constante, não no DOM: `TooltipContent`
