@@ -20,9 +20,9 @@ tags: [type/lane, sprint/a42, status/open, priority/p1, area/backend, area/pipel
 >
 > **Amarra de entrega parcial:**
 > - **Item 2 (CAS do watchdog):** livre agora.
-> - **Itens 1 e 3:** só depois do merge do **#2072**, que reescreve os helpers de commit de
->   `pipeline_task.py` e mexe em `run_context_factory.py`.
-> - Os itens 1 e 3 também esperam a branch `agent/stage-retry-inerte-inprocess/20261008-1630`,
+> - **Itens 1 e 3:** o **#2072**, que reescreve os helpers de commit de `pipeline_task.py` e
+>   mexe em `run_context_factory.py`, mergeou em 2026-10-08 (`b16d38de`). Parta dele.
+> - Os itens 1 e 3 ainda esperam a branch `agent/stage-retry-inerte-inprocess/20261008-1630`,
 >   que mexe em `pipeline_task.py`: ou ela mergeia antes, ou a ordem é combinada com a sessão
 >   dona.
 

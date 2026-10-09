@@ -21,7 +21,7 @@ tags: [type/lane, sprint/a42, status/open, priority/p1, area/backend, area/persi
 > - **PR1 (guardas):** livre agora.
 > - **PR2 (instrumento):** só depois do merge do **#2081**, que também mexe em
 >   `backend/app/core/database.py`. A baseline só vale se for medida depois do merge do
->   **#2072** e do **#2073**.
+>   **#2072** (mergeado em 2026-10-08) e do **#2073**.
 > - **PR3 (lineage):** espera o PR2, porque é ele que mede.
 >
 > Esta amarra cita os PRs pelo número, não a [[A42.l7]], porque essa lane continua `open` depois

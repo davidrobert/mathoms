@@ -61,7 +61,7 @@ stage ao commit) dá 465,97 s no `extract_baseline` desse run, e o eco SQL dá 4
 
 | vítima | medido | estado |
 |---|---|---|
-| `llm_call_log` | 18 de 24 rows perdidas no run. 9 esperaram 30,5 s cada (~4,6 min de stall); as outras 9 falharam em 0,2 s, porque o PRAGMA do heartbeat vazou pelo pool | fix em voo: #2072 ([[ADR-173]] §Emenda 2026-10-08) |
+| `llm_call_log` | 18 de 24 rows perdidas no run. 9 esperaram 30,5 s cada (~4,6 min de stall); as outras 9 falharam em 0,2 s, porque o PRAGMA do heartbeat vazou pelo pool | fix mergeado em 2026-10-08: #2072 ([[ADR-173]] §Emenda 2026-10-08) |
 | heartbeat no meio do stage | 48 de 92 escritas em `pipeline_runs` falharam. O maior intervalo entre batidas que aterrissaram foi de 466 s, a própria janela | cego, mas sem consumidor: o dev nativo não sobe beat, e os compose de dev e prod sobem beat com Postgres |
 | watchdog | estático: `_flip_stuck_run_atomic` filtra só `status`. Um flip que esperou o lock aterrissa depois do commit do stage | latente em SQLite; o furo de CAS existe em qualquer engine |
 | API (GET sensível grava `audit_logs` antes do handler; edição, review, cancel) | 0 escritas dentro das 502 janelas acima de 1 s dos 120 runs. 0 `database is locked` e 0 respostas 5xx no `api.log`. 7 cancels, nenhum dentro de janela | latente: no dogfood há 1 usuário, que espera o run terminar |
