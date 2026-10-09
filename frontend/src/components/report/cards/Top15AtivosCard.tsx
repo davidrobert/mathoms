@@ -4,6 +4,8 @@ import { ReportCard } from "../ReportCard";
 import { MonetaryValue } from "../MonetaryValue";
 import { cn } from "@/lib/cn";
 import { formatPercent } from "@/lib/format";
+import type { Classification } from "@/lib/api/properties";
+import type { MotivoBaldeImovel, VereditoBaldeImovel } from "@/types/patrimonio-imovel";
 
 export interface TopAtivo {
   posicao: number;
@@ -12,8 +14,11 @@ export interface TopAtivo {
   membro: string;
   instituicao: string;
   valor: number;
-  pct_carteira: number;
+  /** `null` = sem peso: imóvel com uso não apurado fica fora da base (ADR-444 D4). */
+  pct_carteira: number | null;
   tipo_origem: "investimento" | "imovel";
+  /** Uso do imóvel (ADR-444 D4); ausente em investimento. */
+  classificacao_imovel?: Exclude<Classification, "residencia_principal"> | null;
 }
 
 export interface Top15AtivosData {
@@ -22,6 +27,8 @@ export interface Top15AtivosData {
 
 interface Top15AtivosCardProps {
   data: Top15AtivosData | undefined;
+  /** Veredito publicado da residência (`patrimonio.cobertura_classificacao_imovel`). */
+  residencia?: VereditoBaldeImovel;
 }
 
 const CLASSE_TOKEN: Record<string, string> = {
@@ -36,6 +43,7 @@ const CLASSE_TOKEN: Record<string, string> = {
   Caixa: "var(--surface-muted-foreground)",
   "Imóveis Investimento": "var(--brand-secondary)",
   Outros: "var(--surface-muted-foreground)",
+  "Imóveis com uso não apurado": "var(--surface-muted-foreground)",
 };
 
 function classeColor(classe: string): string {
@@ -58,15 +66,27 @@ function ClasseBadge({ classe }: { classe: string }) {
   );
 }
 
+function SemPesoCell() {
+  return (
+    <div className="flex items-center justify-end gap-3">
+      <span className="w-12 text-right font-mono text-xs tabular-nums">
+        <span aria-hidden="true">—</span>
+        <span className="sr-only">sem % da carteira</span>
+      </span>
+    </div>
+  );
+}
+
 function PctCarteiraCell({
   pct,
   color,
   alpha,
 }: {
-  pct: number;
+  pct: number | null;
   color: string;
   alpha: string;
 }) {
+  if (pct === null) return <SemPesoCell />;
   const clamped = Math.min(Math.max(pct, 0), 100);
   return (
     <div className="flex items-center justify-end gap-3">
@@ -89,23 +109,83 @@ function PctCarteiraCell({
   );
 }
 
-function deriveInsight(rows: TopAtivo[]): string | undefined {
+const LIMIAR_CONCENTRACAO_PCT = 25;
+
+// ADR-444 D5: o CTA segue o motivo do veredito. Em `nao_localizada` o override já existe —
+// pedir "marque" mandaria a família refazer o que fez.
+const CTA_DA_RESIDENCIA: Partial<Record<MotivoBaldeImovel, string>> = {
+  nao_localizada:
+    "Não localizamos nesta declaração o imóvel marcado como residência; não é preciso marcá-lo de novo.",
+  sem_valor:
+    "A residência marcada está sem valor apurado em 31/12. Se a família mudou de casa, marque a nova em Configurações → Membros.",
+  nao_classificada: "Marque qual imóvel é a residência em Configurações → Membros.",
+  nao_declarada:
+    "Indique em Configurações → Membros se a família mora em imóvel próprio.",
+};
+
+type AtivoComPeso = TopAtivo & { pct_carteira: number };
+
+const fmtBrl = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  maximumFractionDigits: 0,
+});
+
+function comPeso(rows: TopAtivo[]): AtivoComPeso[] {
+  return rows.filter((r): r is AtivoComPeso => r.pct_carteira !== null);
+}
+
+function somaTop3(rows: AtivoComPeso[]): number {
+  return rows.slice(0, 3).reduce((acc, r) => acc + r.pct_carteira, 0);
+}
+
+// O alarme de concentração passa ao maior item COM peso: item sem % não concentra carteira.
+function fraseDoMaiorComPeso(rows: TopAtivo[]): string | undefined {
+  const pesados = comPeso(rows);
+  if (pesados.length === 0) return undefined;
+  const maior = pesados[0];
+  const pct = formatPercent(maior.pct_carteira);
+  const top3 = formatPercent(somaTop3(pesados));
+  if (maior.pct_carteira > LIMIAR_CONCENTRACAO_PCT) {
+    return `Atenção: ${maior.nome} (#${maior.posicao}) concentra ${pct} da carteira (${fmtBrl.format(maior.valor)}). Considere diversificação — os 3 maiores com % somam ${top3}.`;
+  }
+  return `${maior.nome} (#${maior.posicao}) é o maior ativo com % (${pct} = ${fmtBrl.format(maior.valor)}). Os 3 maiores com % somam ${top3} da carteira.`;
+}
+
+function insightSemPeso(rows: TopAtivo[], residencia?: VereditoBaldeImovel): string {
+  const abertura = `O maior item é um imóvel com uso não apurado (${fmtBrl.format(rows[0].valor)}), sem % da carteira.`;
+  const cta = residencia?.motivo ? CTA_DA_RESIDENCIA[residencia.motivo] : undefined;
+  return [abertura, cta, fraseDoMaiorComPeso(rows)].filter(Boolean).join(" ");
+}
+
+// `piso` (ADR-439 D2): a residência está identificada, mas a cota do cônjuge sem id pode
+// estar no desconhecido — diversificar a casa não é conselho (ADR-444 D5/D6).
+function podeSerParteDaResidencia(top1: AtivoComPeso, residencia?: VereditoBaldeImovel): boolean {
+  return (
+    top1.classificacao_imovel === "desconhecido" &&
+    residencia?.piso === true &&
+    top1.pct_carteira > LIMIAR_CONCENTRACAO_PCT
+  );
+}
+
+function deriveInsight(
+  rows: TopAtivo[],
+  residencia?: VereditoBaldeImovel,
+): string | undefined {
   if (rows.length === 0) return undefined;
   const top1 = rows[0];
-  const pct1 = top1.pct_carteira;
-  const top3Pct = rows
-    .slice(0, 3)
-    .reduce((acc, r) => acc + r.pct_carteira, 0);
-  const fmtBrl = new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
+  if (top1.pct_carteira === null) return insightSemPeso(rows, residencia);
+  const top1ComPeso = top1 as AtivoComPeso;
+  const pct1 = formatPercent(top1ComPeso.pct_carteira);
+  const top3 = formatPercent(somaTop3(comPeso(rows)));
   const valorTop1 = fmtBrl.format(top1.valor);
-  if (pct1 > 25) {
-    return `Atenção: ${top1.nome} concentra ${formatPercent(pct1)} da carteira (${valorTop1}). Considere diversificação — top 3 somam ${formatPercent(top3Pct)}.`;
+  if (podeSerParteDaResidencia(top1ComPeso, residencia)) {
+    return `${top1.nome} concentra ${pct1} da carteira (${valorTop1}) e pode ser parte da residência. Confira a classificação em Configurações → Membros antes de diversificar. Top 3 somam ${top3}.`;
   }
-  return `${top1.nome} é o maior ativo individual (${formatPercent(pct1)} = ${valorTop1}). Top 3 somam ${formatPercent(top3Pct)} da carteira.`;
+  if (top1ComPeso.pct_carteira > LIMIAR_CONCENTRACAO_PCT) {
+    return `Atenção: ${top1.nome} concentra ${pct1} da carteira (${valorTop1}). Considere diversificação — top 3 somam ${top3}.`;
+  }
+  return `${top1.nome} é o maior ativo individual (${pct1} = ${valorTop1}). Top 3 somam ${top3} da carteira.`;
 }
 
 const CARD_TITLE = "Top 15 Ativos da Carteira";
@@ -113,16 +193,22 @@ const CARD_SUBTITLE =
   "Investimentos financeiros e imóveis, ranqueados por valor. " +
   "Não inclui residência principal nem bens de uso pessoal — esses aparecem " +
   "em Composição Patrimonial.";
+// ADR-444 D3: com item sem peso, a promessa de excluir a residência deixa de ser verdade.
+const CARD_SUBTITLE_SEM_PESO =
+  "Investimentos financeiros e imóveis, ranqueados por valor. " +
+  "Imóveis com uso não apurado aparecem com valor e sem %: podem incluir a " +
+  "residência principal, que fica fora da carteira. Veículos aparecem em " +
+  "Composição Patrimonial.";
 
-function CardSubtitle() {
+function CardSubtitle({ semPeso = false }: { semPeso?: boolean }) {
   return (
     <p className="-mt-2 mb-4 text-xs leading-snug text-[var(--surface-muted-foreground)]">
-      {CARD_SUBTITLE}
+      {semPeso ? CARD_SUBTITLE_SEM_PESO : CARD_SUBTITLE}
     </p>
   );
 }
 
-export function Top15AtivosCard({ data }: Top15AtivosCardProps) {
+export function Top15AtivosCard({ data, residencia }: Top15AtivosCardProps) {
   const rows = data?.top_ativos ?? [];
 
   if (rows.length === 0) {
@@ -137,11 +223,12 @@ export function Top15AtivosCard({ data }: Top15AtivosCardProps) {
     );
   }
 
-  const insight = deriveInsight(rows);
+  const insight = deriveInsight(rows, residencia);
+  const temItemSemPeso = rows.some((r) => r.pct_carteira === null);
 
   return (
     <ReportCard variant="feature" title={CARD_TITLE} conclusion={insight}>
-      <CardSubtitle />
+      <CardSubtitle semPeso={temItemSemPeso} />
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>

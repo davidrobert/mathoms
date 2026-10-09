@@ -268,7 +268,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version-file: ${{ matrix.dir }}/.nvmrc
       - name: npm audit (prod, HIGH+)
         run: npm audit --audit-level=high --omit=dev
 
@@ -289,7 +289,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version-file: ${{ matrix.dir }}/.nvmrc
       - name: npm audit (incluindo dev, informativo)
         # continue-on-error step-level — dev deps raramente exploitable,
         # job nunca bloqueia.

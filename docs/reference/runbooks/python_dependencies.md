@@ -220,17 +220,66 @@ entradas, não só as `pip`.
 - **sem correspondência:** nenhuma run casa com a entrada, ou o ecossistema / o
   intervalo não tem medição. Vira linha na issue, nunca pass calado. Ecossistema
   novo sem tradução reprova antes, em `tests/dev/test_ci_dependabot_health.py`.
+- **PR parado:** PR do Dependabot aberto há mais de 5 dias, contados pela cadeia
+  de substituição (subseção abaixo). A linha traz as vagas ocupadas da entrada e
+  marca **lotada** quando elas chegam ao `open-pull-requests-limit`.
 - **Triar = fechar à mão**, com comentário apontando o PR do conserto. Não espere
   a próxima run passar: o `S3` reprovaria o `Lint` do próprio PR do conserto (a
   classe do impasse de 2026-10-08). O cron só abre issue **nova** com fato
-  posterior ao fechamento — run `failure` criada depois dele, ou o limite de
-  "sem run" vencido de novo. Nunca `reopen`: a issue herdaria o `createdAt` e o
-  `S3` reprovaria na hora. Com tudo saudável, o cron fecha a issue aberta.
+  posterior ao fechamento: run `failure` criada depois dele, o limite de "sem
+  run" vencido de novo, PR cruzando os 5 dias, ou a entrada de um PR deixado
+  aberto lotar. Nunca `reopen`: a issue herdaria o `createdAt` e o `S3`
+  reprovaria na hora. Issue nova aberta por outro sinal repete o achado já
+  triado com _(triado em <data>)_. O cron fecha a issue aberta quando só restam
+  achados triados, ou nenhum, e o comentário diz qual sinal zerou.
 - **Medição falha** (token, API, yml): `::warning title=dependabot-health sem
   medição::` no log, issue intocada, run verde. Zero runs na janela conta como
   instrumento cego, não como dez entradas sem run.
 - **Limite:** o aviso "cannot open any more pull requests" só aparece na UI do
-  Dependabot. O job sai `success` e o script não o vê.
+  Dependabot. O job sai `success` e o script não o lê. A ocupação de vagas do
+  sinal "PR parado" é uma aproximação: conta os PRs abertos da entrada, inclusive
+  os de security update, que têm limite próprio de 10. O erro cai do lado barato,
+  no máximo uma issue a mais.
+
+### PR do Dependabot parado
+
+Vale para todo ecossistema, não só `pip`. Fechar PR do Dependabot vira ignore
+implícito da release, e por isso o `stale.yml` isenta esses PRs pela label
+`dependabot` (#2147; o stale fechou #2006–#2015 em 2026-09-29). Isento, o PR que
+ninguém mergeia fica aberto para sempre: ocupa uma vaga do
+`open-pull-requests-limit` (5, ou 3 no `frontend-ops`) e trava calado os version
+updates da entrada. O pip é o caso típico, porque o PR nasce vermelho até alguém
+regenerar o `.lock`.
+
+- **Idade é da cadeia, não do PR.** A cada release nova o Dependabot fecha o PR e
+  abre outro ("Superseded by #N"). O `next` passou por #2025, #2037 e #2039 em 9
+  dias, e os dois últimos tinham menos de 2 dias cada. O
+  `dev/ci_dependabot_stuck_prs.py` liga os elos pela mesma entrada, a mesma
+  dependência (branch sem versão nem hash de grupo) e um fechamento sem merge a
+  até 5 min da criação do substituto. Medido: de −50s a +6s. Merge quebra a
+  cadeia. `multi-<hash>` nunca vira cadeia. Quando o Dependabot reestrutura a
+  branch (dep avulsa vira `multi-…` ou grupo), a idade é subestimada, nunca
+  superestimada.
+- **Por que 5 dias:** o cron roda às 02:00 UTC e o Dependabot às segundas, 09:00
+  UTC. PR aberto na run cruza 5 dias no sábado e o aviso sai no domingo, antes da
+  run seguinte. Com 7, o aviso chegaria depois dela. PR saudável mergeou em até
+  1,3 dia nos 99 medidos. Contrafactual: o lote de 09-07 teria avisado em 09-13,
+  16 dias antes de o stale fechá-lo.
+- **Saídas** (escolha uma, e então feche a issue):
+  1. **Merge.** No pip, rode a Tarefa 1 no próprio PR do Dependabot.
+  2. **Lane de migração**, para major que pede trabalho (ex.: vite 6→8,
+     typescript 6→7). O PR pode ficar aberto enquanto sobrar vaga.
+  3. **`ignore` no `.github/dependabot.yml`**, com data e condição de retomada no
+     comentário (padrão do `ignore` de redis acima). Só depois feche o PR.
+- **Nunca** só fechar o PR nem comentar `@dependabot ignore`. As duas coisas viram
+  ignore fora do git, o mesmo defeito que o stale causou.
+- **PR deixado aberto é triagem válida enquanto sobra vaga.** Ele volta à issue
+  se a entrada lotar depois do fechamento, porque aí passa a travar update.
+- **PR sem entrada** no `dependabot.yml` (hoje `go_modules`, que só recebe
+  security update) também vira linha, com vagas "n/d". Security update parado é
+  o mais grave da lista.
+- **Medição falha** (lista de PRs vazia em 90 dias, ou cortada no `--limit`):
+  `::warning::` e issue intocada, igual ao resto do script.
 
 ## Hook de sincronia
 

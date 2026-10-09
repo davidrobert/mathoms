@@ -107,7 +107,9 @@ class CatalogEntry:
 
 def _is_money_key(key: str) -> bool:
     low = key.lower()
-    if any(marker in low for marker in _NON_MONEY_MARKERS):
+    # Paridade com `ancora_format_hint`: `n_` é contagem por convenção do E5, e o token
+    # "total" fazia `n_total` entrar no catálogo como "R$ 5,00" ([[A40.l123]]).
+    if low.startswith("n_") or any(marker in low for marker in _NON_MONEY_MARKERS):
         return False
     return any(token in low for token in _MONEY_KEY_TOKENS)
 

@@ -192,6 +192,11 @@ próprio termo §13**, então parseá-la para classificar seria transportar o te
 proibido pelo caminho de classificação. Com argumento obrigatório não existe
 ramo não-mapeado: produtor novo não compila sem decidir.
 
+> **Nota 2026-10-09 — [[ADR-447]].** `_needs_review` ganhou o par `failure_class` — a classe
+> da falha técnica, derivada do objeto da exceção —, também sem default, e os dois são XOR:
+> exatamente um vem. `reason_code=None` deixa de ser o único sinal da indisponibilidade; ela
+> passa a dizer qual foi.
+
 Gate correspondente: função **total** `set(MAP_REASON_TO_DTO) == set(Enum)`. Sem
 membro genérico de fallback — com o mapa total ele não tem instância, mesmo razor
 que corta `dado_insuficiente` (zero produtores).

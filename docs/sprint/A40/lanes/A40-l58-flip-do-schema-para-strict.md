@@ -285,6 +285,10 @@ deixa `e4_unified` aberto, e ninguém nomeou o E2. É também a de **pior blast
 radius**: flipar `e2_extract` aborta o write exatamente dos documentos que o
 parser não soube ler — o run morre em E2 **antes** de o fallback LLM existir.
 
+> **Correção 2026-10-09.** Só em lote só de stubs. Em lote misto o E2 termina `completed`
+> sem o extrato: `processados` conta o arquivo antes do write e mantém o `success` — perda
+> silenciosa, bloqueador do flip no §1.1 do runbook.
+
 O gate não podia ver isso. [`test_e2_schema_strict_corpus.py:353`](../../../../tests/test_e2_schema_strict_corpus.py)
 enumera `registry._ALL_PARSERS`, e o stub não é parser registrado; pior, o helper
 do corpus **rejeita o shape por asserção** (`:363`,
@@ -543,6 +547,13 @@ avisa para não confiar nele em triagem retroativa.
 > nunca a vê, e o abort grava `unknown` — antes e depois de 2026-08-24. O §8.1 do
 > runbook passou a filtrar pela mensagem do raise; carregar a classe através do
 > executor é o §Deferimento da ADR-443, cobrado por um `xfail` estrito.
+>
+> ✅ **Fechado 2026-10-09 — [[ADR-447]].** A classe sai do objeto dentro do executor e
+> atravessa os dois executores em `detail["failure_class"]`: o abort grava `output_invalid`
+> onde a `ValidationError` chega ao `_run_stage` (tabela do §8.1 do runbook). Segue `unknown`
+> nos stages que capturam por documento (`extract_with_llm`, `extract_informe_aluguel` —
+> §Deferimento da ADR-447), e no E2 determinístico o abort nem falha o stage (bloqueador do
+> flip de `e2_extract`, §1.1 do runbook).
 
 ### Passo 4 (2026-08-24) — o flip órfão fecha em `tests/`, e o backend fica de fora com razão medida
 
