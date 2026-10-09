@@ -30,7 +30,7 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: actions/stale@v10
+      - uses: actions/stale@v11
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -70,7 +70,7 @@ jobs:
       # Checkout condicional: o script do canal vive no repo, mas este job não
       # precisa da árvore no caminho feliz — pagar ~2s em todo run agendado
       # para cobrir o run que falha seria custo sem contrapartida.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         if: failure()
 
       # Canal de falha do compensador (ADR-210 §camada 4, KR-F do PLAN-ci-trust).
