@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -17,6 +18,10 @@ from pipeline.domain.services.cenarios_conjuge_analyzer import (  # noqa: E402
     CenariosConjugeResult,
     should_render_conjuge_scenarios,
 )
+from pipeline.domain.services.narrativas.format_helpers import (  # noqa: E402
+    CENARIO_CONJUGE_META_ATINGIDA,
+    CENARIO_CONJUGE_SEM_APORTE,
+)
 
 _TITULAR_DOB = date(1985, 6, 15)
 _REF_DATE = date(2026, 4, 19)
@@ -26,7 +31,7 @@ def _cfg(**overrides) -> CenariosConjugeConfig:
     base = {
         "titular_dob": _TITULAR_DOB,
         "retorno_real_anual_pct": 6.0,
-        "aporte_base": 15_000,
+        "aporte_base": Decimal("15000"),
         "fator_reduzido": 0.66,
         "titular_key": "alice",
         "conjuge_key": "bob",
@@ -81,7 +86,7 @@ class TestConfig:
             conjuge_key="bob",
             conjuge_nome="Bob",
         )
-        assert cfg.aporte_base == 0.0
+        assert cfg.aporte_base is None  # ausência, não zero (ADR-373)
         assert cfg.fator_reduzido == 0.66  # default
 
     def test_config_sem_dependencia_de_usd(self):
@@ -116,7 +121,7 @@ class TestAnalyzer:
         assert result.cenarios[0].nome == "Sem renda do cônjuge"
 
     def test_aporte_eh_aporte_base_vezes_fator_reduzido(self):
-        cfg = _cfg(aporte_base=10_000, fator_reduzido=0.6)
+        cfg = _cfg(aporte_base=Decimal("10000"), fator_reduzido=0.6)
         analyzer = CenariosConjugeAnalyzer(cfg)
         result = analyzer.analyze(
             patrimonio=_patrimonio(),
@@ -154,7 +159,7 @@ class TestAnalyzer:
 
     def test_resumo_formato_monetario_brasileiro(self):
         """A37.l14 (PD-11): resumo exibia milhar US ("R$ 13,200/mês")."""
-        cfg = _cfg(aporte_base=22_000, fator_reduzido=0.6)
+        cfg = _cfg(aporte_base=Decimal("22000"), fator_reduzido=0.6)
         analyzer = CenariosConjugeAnalyzer(cfg)
         result = analyzer.analyze(
             patrimonio=_patrimonio(), goals=_goals(), fluxo=_fluxo_salario_conjuge()
@@ -173,9 +178,9 @@ class TestAnalyzer:
         )
         assert result.cenarios[0].prazo_if_anos == 0.0
 
-    def test_aporte_zero_resulta_em_ausencia_explicita(self):
+    def test_aporte_ausente_resulta_em_ausencia_explicita(self):
         """Sem prazo projetável nada dele deriva — era 999 → ano 3025, idade 1040."""
-        cfg = _cfg(aporte_base=0)
+        cfg = _cfg(aporte_base=None)
         analyzer = CenariosConjugeAnalyzer(cfg)
         result = analyzer.analyze(
             patrimonio=_patrimonio(),
@@ -186,8 +191,13 @@ class TestAnalyzer:
         assert cenario.prazo_if_anos is None
         assert cenario.ano_if is None
         assert cenario.idade_titular is None
-        assert "não projetável" in cenario.resumo
         assert "999" not in cenario.resumo
+
+    @pytest.mark.parametrize("aporte", [Decimal("0"), 15_000.0])
+    def test_config_recusa_zero_e_float(self, aporte):
+        """Zero não é declarável (ADR-373) e dinheiro não é float (ADR-090)."""
+        with pytest.raises(ValueError, match="aporte_base"):
+            _cfg(aporte_base=aporte)
 
     def test_to_legacy_dict_shape(self):
         analyzer = CenariosConjugeAnalyzer(_cfg())
@@ -229,9 +239,18 @@ class TestAporteNaoDeclarado:
     def test_resumo_nao_afirma_aporte_zero(self, aportes):
         resumo = _analisa_sem_aporte(aportes).cenarios[0].resumo
         assert "R$ 0" not in resumo
+        assert "N/D" not in resumo
         assert "66%" not in resumo
         # ADR-373 D2: a redação nomeava a nossa incapacidade, não o insumo que falta.
         assert "não projetável" not in resumo
+        assert resumo == CENARIO_CONJUGE_SEM_APORTE
+
+    def test_meta_atingida_sem_aporte_mantem_prazo_zero(self):
+        """Meta atingida independe do aporte: o solver devolve 0 antes de olhá-lo."""
+        cenario = _analisa_sem_aporte({}, investivel=10_000_000).cenarios[0]
+        assert cenario.prazo_if_anos == 0.0
+        # A frase de ausência seria falsa aqui: a perda da renda não adia o que já chegou.
+        assert cenario.resumo == CENARIO_CONJUGE_META_ATINGIDA
 
     @pytest.mark.parametrize("aportes", _SEM_APORTE_DECLARADO)
     def test_payload_publica_ausencia_e_nao_zero(self, aportes):
