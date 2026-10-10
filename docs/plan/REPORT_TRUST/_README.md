@@ -295,6 +295,10 @@ closeout**, um deles corrigido.
   Candidato: comparar com realinhamento `dy∈{±1,±2}` antes de reprovar. A
   consequência já está registrada onde ela morde: `VISUAL_SNAPSHOTS.md`
   §Tolerância declara que o `0.025` do helper é folga **herdada, não medida**.
+  **2026-10-09 (#2251):** o `0.025` saiu; o helper usa `0.00003`, medido. O
+  efeito inverteu: reflow de 1px deixou de ser absorvido e passou a reprovar em
+  toda seção — o candidato acima virou redução de custo de rebaseline, não
+  conserto de gate cego.
 - **Ledger de proveniência por baseline** — P3. `px_sha256`, `dims`,
   `transition` computados; `attributed_to`, `inspected_by` humanos. **Não**
   copiar `dev/golden_diff.py` inteiro: o pilar do commit isolado **inverte** em
