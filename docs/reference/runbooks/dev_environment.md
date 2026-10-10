@@ -41,15 +41,20 @@ Healthcheck do `api` tem `start_period: 60s` (cold build + migração + seed).
 > deliberadamente distinta da banda nativa **800x/300x/543x** para o stack Docker coexistir
 > com `make native-up` sem colisão. Override: `make dev-up-docker MATHOMS_DOCKER_API_PORT=9000`.
 
-Console interno (`frontend-ops`, ADR-116) é opcional:
+Console interno (ADR-116) é opcional — o profile `ops` soma `api-ops` (backend
+com `/admin/*`, sem porta publicada) e `frontend-ops`. Exige
+`config/internal_operators.yaml` e o secret de sessão exportado; sem eles o
+`up` falha com `dependency failed to start`:
 
 ```bash
+export MATHOMS_INTERNAL_OPS_SESSION_SECRET="$(openssl rand -hex 32)"
 docker compose -f docker-compose.dev.yml --profile ops up -d --build
 ```
 
 UI em http://127.0.0.1:3110/login. O destino do proxy `/admin/*` é build arg
-(`MATHOMS_DOCKER_OPS_API_BASE`, default `http://api:8000`) — trocar exige
-`--build`. Detalhes e limitação atual do login em [RUNBOOK §7.2](../RUNBOOK.md).
+(`MATHOMS_DOCKER_OPS_API_BASE`, default `http://api-ops:8000`) — trocar exige
+`--build`. Operador, hash e escape para backend fora do compose em
+[RUNBOOK §7.2](../RUNBOOK.md).
 
 ---
 
