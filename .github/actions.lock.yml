@@ -80,7 +80,7 @@ actions/setup-go@v7:
   - token
   resolved_sha: b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
   runs_using: node24
-actions/setup-node@v6:
+actions/setup-node@v7:
   inputs:
   - architecture
   - cache
@@ -94,7 +94,7 @@ actions/setup-node@v6:
   - registry-url
   - scope
   - token
-  resolved_sha: 249970729cb0ef3589644e2896645e5dc5ba9c38
+  resolved_sha: 949feb2413d6458794dcd2491c4babbbce0c15c1
   runs_using: node24
 actions/setup-python@v7:
   inputs:
@@ -170,8 +170,9 @@ actions/stale@v11:
   - start-date
   resolved_sha: 4391f3da665fdf50b6810c1a66712fb9ba21aa93
   runs_using: node24
-actions/upload-artifact@v6:
+actions/upload-artifact@v7:
   inputs:
+  - archive
   - compression-level
   - if-no-files-found
   - include-hidden-files
@@ -179,7 +180,7 @@ actions/upload-artifact@v6:
   - overwrite
   - path
   - retention-days
-  resolved_sha: b7c566a772e6b6bfb58ed0dc250532a479d7789f
+  resolved_sha: cf430e030ddbb5b0abf93d22962f4752f3646cd9
   runs_using: node24
 amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50:
   inputs:
