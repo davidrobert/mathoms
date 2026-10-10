@@ -19,7 +19,7 @@ import json
 from pathlib import Path
 from typing import Any, Iterable
 
-import fastapi.routing
+from fastapi.routing import iter_route_contexts
 
 _OPENAPI_SNAPSHOT = Path(__file__).resolve().parents[2] / "docs/reference/api/v1/openapi.json"
 _HTTP_METHODS = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE"})
@@ -29,10 +29,8 @@ ROUTES_SNAPSHOT: list[Any] = []
 
 
 def iter_effective_routes(routes: Iterable[Any]) -> list[Any]:
-    """Rotas efetivas do app, em qualquer versão do fastapi."""
-    # fastapi <0.137 não tem a árvore nem o iterador; a lista plana já é a efetiva.
-    flatten = getattr(fastapi.routing, "iter_route_contexts", None)
-    return list(flatten(routes)) if flatten else list(routes)
+    """Rotas efetivas do app (``RouteContext``: prefixo + dependências do include)."""
+    return list(iter_route_contexts(routes))
 
 
 def schema_operations(routes: Iterable[Any]) -> set[tuple[str, str]]:

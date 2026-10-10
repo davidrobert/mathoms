@@ -165,18 +165,22 @@ def _require_backend_factory():
     return factory
 
 
+def _fallback_stages(args: argparse.Namespace) -> frozenset[str]:
+    """Stages do pin do run base (CSV da flag) — o store e o ctx leem o mesmo parse."""
+    return frozenset(s for s in args.base_run_fallback_stages.split(",") if s)
+
+
 def _open_artifact_store(args: argparse.Namespace):
     """Sessão nova + ``DBArtifactStore`` para UM stage (ADR-303 D1/D4)."""
     # Mecânica de sessão vive no backend (artifact_session_factory) — ADR-256
     # proíbe pipeline/** de abrir Session própria.
     factory = _require_backend_factory()
-    fallback = frozenset(s for s in args.base_run_fallback_stages.split(",") if s)
     try:
         return factory.open_artifact_store(
             workspace_id=args.workspace_id,
             run_id=args.run_id,
             base_run_id=args.base_run_id,
-            base_run_fallback_stages=fallback,
+            base_run_fallback_stages=_fallback_stages(args),
         )
     except factory.ArtifactSessionUnavailable as exc:
         raise CliEnvironmentError(str(exc)) from exc
@@ -191,6 +195,9 @@ def _hydration_kwargs(args: argparse.Namespace) -> dict:
         "incremental": args.incremental,
         "incremental_doc_paths": list(args.incremental_docs),
         "skip_llm": args.skip_llm,
+        # ADR-291: ctx e store pinados juntos — paridade com o ctx do Celery.
+        "base_run_id": args.base_run_id,
+        "base_run_fallback_stages": _fallback_stages(args),
         "materialize_tarefas": True,
     }
 

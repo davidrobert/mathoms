@@ -140,6 +140,41 @@ def test_http_payload_carries_run_llm_policy(tmp_path, llm_calls_allowed, espera
     assert _skip_llm_no_payload(tmp_path, llm_calls_allowed=llm_calls_allowed) is esperado
 
 
+def _payload_enviado(ctx) -> dict:
+    import json as _json
+
+    captured: dict = {}
+
+    def _record(req: httpx.Request) -> httpx.Response:
+        captured.update(_json.loads(req.content.decode()))
+        return httpx.Response(200, json={"stage": "E5", "success": True})
+
+    transport = httpx.MockTransport(_record)
+    client = HttpPipelineClient("http://ps.local", http=httpx.Client(transport=transport))
+    client.execute_stage(ctx, "E5", workspace_id="ws-1")
+    return captured
+
+
+def test_http_payload_carries_base_run_pin(tmp_path):
+    """ADR-291/ADR-303 D2: sem o pin o executor remoto lê E3/E4 só do run corrente — vazio num from_stage."""
+    ctx = _ctx(tmp_path)
+    ctx.base_run_id = "run-base"
+    ctx.base_run_fallback_stages = frozenset({"reconcile_transactions", "E3", "E4"})
+
+    body = _payload_enviado(ctx)
+
+    assert body["base_run_id"] == "run-base"
+    assert body["base_run_fallback_stages"] == ["E3", "E4", "reconcile_transactions"]
+
+
+def test_http_payload_sem_pin_envia_os_defaults_do_contrato(tmp_path):
+    """Run full/incremental/resume não pina: null + [] são os defaults de `StageExecuteRequest`."""
+    body = _payload_enviado(_ctx(tmp_path))
+
+    assert body["base_run_id"] is None
+    assert body["base_run_fallback_stages"] == []
+
+
 def test_http_execute_stage_translates_failure(tmp_path):
     def handler(req: httpx.Request) -> httpx.Response:
         return httpx.Response(

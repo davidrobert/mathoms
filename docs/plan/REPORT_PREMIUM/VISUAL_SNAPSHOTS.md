@@ -35,16 +35,28 @@ pegam.
 
 ## Fluxo de baseline (primeira vez OU após mudança visual aprovada)
 
-1. Marcar PR com label `visual` (ou disparar `workflow_dispatch` com
-   `run_visual=true`).
-2. Job `frontend-visual` roda e **falha** se não houver baseline (ou
-   se diff for > tolerância).
-3. Baixar artefato `report-visual-snapshots` do run do CI.
-4. Inspecionar o diff visualmente:
-   - Se a mudança é intencional: extrair `tests/e2e/reports/__snapshots__/`
-     do artefato + commitar como nova baseline (apenas `*-linux.png`).
-   - Se é regressão: corrigir o código.
-5. Re-rodar — baseline atualizada, CI passa.
+1. Na branch, **apague** as baselines que a mudança pode tocar — na dúvida, as
+   26 de seção (todas as de `sections.snapshots.visual.spec.ts-snapshots/` menos
+   `cover-*`, `sumario-executivo-*` e `parecer-metricas-print-*`).
+2. Dispare `gh workflow run CI --ref <branch> -f run_visual=true -f update_visual_baselines=true`.
+3. Baixe o artefato `report-visual-baselines-generated` e copie os PNGs para
+   `sections.snapshots.visual.spec.ts-snapshots/`. O render é determinístico
+   (ruído 0 px, §Tolerância): a baseline que não mudou volta byte-idêntica e
+   some do diff do git.
+4. Abra cada PNG que o git acusa e **atribua** cada diferença a uma mudança do
+   PR, ou à deriva de um PR anterior, nomeando-o. Diferença sem dono é
+   regressão até prova em contrário — se for, corrija o código.
+5. Commite no mesmo PR, com o label `visual`: o run do label compara contra o
+   que você commitou.
+
+> ⚠️ **Apagar não é opcional.** `--update-snapshots` sem valor usa o preset
+> `changed`, que reescreve só a baseline que **reprova**; a irmã com diff sob a
+> tolerância fica velha, sem sinal. Medido em 2026-10-09: 19 das 26 baselines de
+> seção eram de render antigo. O #1569 reescreveu `APP-A` light (acima de 2,5%)
+> e deixou a dark (2,37%); `APP-D` não era regenerada desde o #174 (maio). No
+> mesmo dia o #2206 reescreveu `APP-A` dark, `APP-B` e `APP-D` e deixou `APP-A`
+> light e `S1` com a copy antiga. O conserto na origem seria
+> `--update-snapshots=all` no `ci.yml`.
 
 > **Nunca** rode `--update-snapshots` localmente em macOS/Windows e
 > commite o resultado. `.gitignore` já bloqueia `*-darwin.png`/`*-win32.png`,
@@ -59,23 +71,40 @@ baselines de seção para razão, e a [[A40.l103]] (#1859) tirou as 2 últimas (
 capa). Combinar os dois é armadilha — Playwright usa `Math.min(absoluto,
 ratio×área)`, então o piso absoluto **anula** o ratio em imagem grande.
 
-Dois valores em uso, e a diferença é deliberada:
+Três alvos, todos **medidos nos dois extremos** — piso de ruído e menor mudança
+que precisa reprovar:
 
-| Alvo | Valor | Por quê |
+| Alvo | Valor | Par medido |
 | --- | --- | --- |
-| Seções (helper) | `maxDiffPixelRatio: 0.025` | Absorve subpixel de canvas do chart.js. Herdado da [[A40.l53]] e **não** recalibrado. A [[A40.l92]] mediu que ele não pega uma barra inteira: na sonda (run 37845587590), a regressão de origem da lane reprovou o snapshot dedicado da tabela por 1.135 px e **passou** em `S_parecer-parcial` |
-| `cover` e `sumario-executivo` | `maxDiffPixelRatio: 0.0003` | **Medido nos dois extremos** pela [[A40.l103]]: piso de ruído 0px (2 `workflow_dispatch` do mesmo SHA devolveram 28/28 baselines byte-idênticas) e menor mudança que precisa reprovar 304px (~0,076%, `"XX"` no `subtitle`). Nenhum dos dois tem canvas, logo não herdam o `0.025` |
-| `parecer-metricas-print` (papel, só light) | `maxDiffPixelRatio: 0.0003` | **Medido nos dois extremos** pela [[A40.l92]]: ruído 0 px; a regressão de origem da lane (trilha cheia em linha de teto) muda 1.135 px e reprova, ~11× acima do teto (~105 px em 703×500). Existe porque a baseline da seção não pegava essa regressão |
+| Seções (helper) | `maxDiffPixelRatio: 0.00003` | Ruído **0 px**: dois `workflow_dispatch` do mesmo SHA devolveram as 31 baselines byte-idênticas (runs 38001880308 / 38001884617 no Playwright 1.63; 37913203304 / 37913206241 no 1.60; 37878128246 / 37878130334 no 1.59). Menor mudança **262 px**: `"XX"` ao fim do `<h2>`, a classe em que o `<h2>` da S9 mudou e o gate ficou verde — 262–265 px nas 26 baselines (run 37917805709). Quem limita é a maior seção, S2 (2,9 Mpx): 86 px de folga, 3× abaixo. A barra cheia na linha de teto da [[A40.l92]] dá 1.135 px e reprova em `S_parecer-parcial` (run 37917727206); sob o `0.025` anterior, passava |
+| `cover` e `sumario-executivo` | `maxDiffPixelRatio: 0.0003` | [[A40.l103]]: ruído 0 px; `"XX"` no `subtitle` = 304 px (~0,076%); 0.0003 ≈ 120 px na capa. Nenhum dos dois tem canvas |
+| `parecer-metricas-print` (papel, só light) | `maxDiffPixelRatio: 0.0003` | [[A40.l92]]: ruído 0 px; a barra cheia na linha de teto = 1.135 px, ~11× acima do teto (~105 px em 703×500). É a única baseline da tabela no papel |
 
-> ⚠️ **`0.025` é folga grande em imagem pequena.** O primeiro valor tentado na
-> capa, `0.005`, deixava passar uma mudança de texto por folga de 6,6× — a
-> classe em que o `<h2>` da S9 mudou e o gate ficou verde. Ao criar baseline
-> nova, meça o par (piso de ruído, menor mudança que importa) em vez de herdar.
+> ⚠️ **O par é em px; a tolerância é razão.** A folga em px cresce com a área,
+> então uma razão para imagens de 0,2 a 2,9 Mpx é limitada pela MAIOR. Seção
+> que passar de ~8,7 Mpx deixa de pegar o `<h2>` trocado — re-meça antes de
+> aceitá-la. É por isso que a capa (0,4 Mpx) tem razão 10× maior que a do
+> helper: em px, 120 contra os 86 da S2.
+
+> ⚠️ **O que a tolerância das seções NÃO pega, declarado.** Trocar 2
+> caracteres de texto de 12px muda 29–87 px (run 37882160857) e passa nas
+> seções grandes; o separador decimal `42.8%` → `42,8%` do #2091 mudou 13 px.
+> Isso é escopo de gate de texto (`print-text.@critical`, ESLint de
+> `formatPercent`), não de pixel.
+
+> ⚠️ **O custo: reflow de 1px reprova.** Mudança que desloca uma seção em
+> fração de px marca milhares de px nela — a `APP-B` light marcava 18.813 pelo
+> pixelmatch. A folga de 2,5% engolia isso, e junto engolia a deriva. O preço
+> agora é rebaseline atribuída no PR que causou o reflow; o candidato para
+> baixá-lo é comparar com realinhamento `dy=±1` antes de reprovar
+> ([[PLAN-report-trust]] §Deferimentos do closeout da [[A40.l103]]).
 
 > ⚠️ **`--update-snapshots` só reescreve quando a comparação FALHA.** Mutação
 > sob a tolerância devolve o arquivo antigo intacto e o diff acusa `0px` — que
 > é o arquivo comparado consigo mesmo, não medição. Para medir de verdade,
-> apague a baseline na branch de sonda.
+> apague a baseline na branch de sonda. Para ler o tamanho de uma mudança com
+> o contador do próprio gate, rode a sonda com `maxDiffPixelRatio: 0`: todo
+> snapshot que muda reprova e o log diz quantos pixels.
 
 ## Mascarar elementos voláteis
 
@@ -86,6 +115,15 @@ atributo evita falsos-positivos:
 ```tsx
 <span data-mask-snapshot>{generatedAt}</span>
 ```
+
+Todo recorte também mascara os FABs do `FloatingNav` (`floatingNavMask` no
+spec). São `position: fixed`, então entram no recorte de qualquer seção que
+caia no canto inferior direito da viewport — estavam em 16 das 26 baselines de
+seção até 2026-10-09 —, e a visibilidade deles depende do scroll, logo da
+altura da página. A máscara cobre o border-box; a sombra fica de fora, e no
+pior caso (os dois FABs sumindo juntos) muda 1.486 px crus com delta máximo de
+41,5% do limiar do pixelmatch: o comparador conta 0 (runs 37882163019 /
+37888645408).
 
 ## Decisão D3 — mobile spec fica fora desta lane
 
