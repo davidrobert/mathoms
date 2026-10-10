@@ -5,7 +5,7 @@
  * seções, e cada uma dispara o próprio fetch: roster, sugestões, decisões,
  * parecer e exposição cambial. Um teste que só quer medir o shell (capa, ToC,
  * header) não declara nada sobre esses dados — e, sem override, as 5 requests
- * batiam no `onUnhandledRequest: "error"` do setup e rejeitavam **depois** da
+ * batiam no `onUnhandledFrame: "error"` do setup e rejeitavam **depois** da
  * asserção síncrona: 81 linhas de ruído por run, seções em estado de falha, e
  * nenhum sinal (medido em 2026-08-21 — as 18 asserções passam idênticas com e
  * sem estes handlers).

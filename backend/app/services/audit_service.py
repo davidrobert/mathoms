@@ -42,6 +42,7 @@ from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.audit_log import AuditLog
+from backend.app.services.security.client_ip import client_ip
 
 
 async def log(
@@ -64,7 +65,7 @@ async def log(
     ip = None
     user_agent = None
     if request is not None:
-        ip = request.client.host if request.client else None
+        ip = client_ip(request)
         user_agent = request.headers.get("user-agent")
 
     entry = AuditLog(

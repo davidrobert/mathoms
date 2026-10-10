@@ -14,6 +14,7 @@ relates_to:
   - "[[ADR-241]]"
   - "[[ADR-256]]"
   - "[[ADR-291]]"
+  - "[[ADR-323]]"
   - "[[ADR-357]]"
 aliases:
   - "ADR 303"
@@ -23,7 +24,7 @@ tags:
   - area/architecture
   - status/decidido
   - type/adr
-size_lines: 128
+size_lines: 193
 ---
 
 # ADR-303 — Boundary de artefatos do executor remoto (A3.store)
@@ -33,7 +34,11 @@ size_lines: 128
 > **Emenda 2026-10-09 — D1 espelhava só o ramo de exceção.** O executor remoto
 > commitava o que um stage required escreveu antes de não entregar, e o loop
 > in-process faz rollback. A disposição vem agora de um predicado único (§Emenda
-> 2026-10-09, ao fim).
+> 2026-10-09 — D1, ao fim).
+>
+> **Emenda 2026-10-09 — D2 não chegou ao chamador.** O `HttpPipelineClient` não
+> reenviava o pin do run base, e um `from_stage` sob o shell lia o run corrente.
+> O pin agora vive no ctx dos três executores (§Emenda 2026-10-09 — D2, ao fim).
 
 ## Contexto
 
@@ -163,3 +168,26 @@ que falha é da [[A42.l28]]. Guarda: a mesma tabela-oráculo roda nos três exec
 `test_stage_transaction_disposition.py` de `backend/tests/` e `pipeline-service/tests/`).
 O `dev/go_parity_gate.py` não vê esta classe, porque compara runs que terminam; quem a
 vê no soak é o invariante do ledger ([[TRACK-f2-cutover]] §Soak).
+
+## Emenda 2026-10-09 — D2: o cliente HTTP não reenviava o pin
+
+D2 pôs o pin do run base no contrato, no `BuildArgs` do shell Go e no CLI, mas não no
+chamador. O `HttpPipelineClient` montava o payload sem `base_run_id` nem
+`base_run_fallback_stages`, e a task Celery entregava o pin só ao `DBArtifactStore` do
+próprio loop. Sob o shell, um `from_stage` ([[ADR-291]]) lia E3/E4/E5 do run corrente,
+que não os produziu. Por leitura de código: E4 e E5 abortam (guard D5 da [[ADR-291]] e a
+checagem de inputs do E5); E5.N e `validate_cross` devolvem `success: False` e o run fecha
+`partial_failure`; o parecer devolve `skipped` e o run fecha `completed` sem parecer. Esse
+é o "Reprocessar a partir de" da [[ADR-357]] §8 sobre o parecer degradado, verde nos dois
+braços. Os stages workspace-scoped ([[ADR-241]]) não divergiam, porque o trigger nunca os
+põe no pin.
+
+**Decisão, sem reabrir D2:** o `WorkspaceContext` carrega o pin, preenchido só pelo
+`run_context_factory`. Na task Celery o ctx é a fonte única: o loop abre o store com o pin
+do ctx e o `HttpPipelineClient` o reenvia no payload. O CLI e o pipeline-service hidratam o
+ctx com o pin do request, e "store pinado ⇔ ctx pinado" vale nos três executores. Guardas:
+`backend/tests/test_pin_do_base_run_chega_ao_executor.py` (args da task → payload, e o
+degrade da [[ADR-323]] lendo o base) e o aceite ponta a ponta em
+`pipeline-service/tests/test_artifact_store_integration.py`, onde o cliente HTTP real leva
+o E4 real até o E3 do base. O `go_parity_gate` compara runs completos e não vê esta classe;
+a paridade de cauda é a §A5 do [[TRACK-f2-cutover]].

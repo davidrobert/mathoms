@@ -67,7 +67,7 @@ export function OnboardingHero({ hasIfGoal, hasDecisions }: OnboardingHeroProps)
               n={3}
               icon={ClipboardList}
               title="Crie sua primeira decisão"
-              description="Decisões são compromissos do casal — quitar dívida, aportar mensal, montar reserva. A primeira costuma vir do relatório, mas você pode criar manualmente."
+              description="Decisões são seus compromissos — quitar dívida, aportar todo mês, montar reserva de emergência. A primeira costuma vir do relatório, mas você pode criar manualmente."
               ctaLabel="Ver Plano de Ação"
               ctaHref="/acao"
               ctaVariant="ghost"

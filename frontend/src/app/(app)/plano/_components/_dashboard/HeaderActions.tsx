@@ -31,7 +31,7 @@ export function HeaderActions({
         onClick={onRefresh}
         disabled={loading}
         className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
-        aria-label="Atualizar dashboard"
+        aria-label="Recarregar análise"
       >
         <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
       </button>
