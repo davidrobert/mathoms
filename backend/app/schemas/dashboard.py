@@ -1,6 +1,6 @@
 """Pydantic schemas for Dashboard endpoints."""
 
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel
 
@@ -23,7 +23,10 @@ class DashboardChart(BaseModel):
 
 
 class DashboardAlert(BaseModel):
-    severity: str
+    # `kind` é a origem do item no E5 e é o que o summary fechado da "Análise Financeira"
+    # conta; `severity` é o tom, e só o ponto urgente de prioridade alta é `critical`.
+    kind: Literal["ponto_urgente", "aviso"]
+    severity: Literal["critical", "warning"]
     title: str
     message: str
 

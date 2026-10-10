@@ -5,6 +5,7 @@ title: "Imóvel de uso não apurado entra na carteira com valor e sem peso, e ne
 status: Decidido
 phase: A40.l122
 date: "2026-10-08"
+amended_at: ["2026-10-09"]
 relates_to:
   - "[[ADR-439]]"
   - "[[ADR-433]]"
@@ -29,6 +30,11 @@ tags:
 ---
 
 # ADR-444 — Imóvel de uso não apurado entra na carteira com valor e sem peso
+
+> **Corrigida 2026-10-09 (PR-B #2233 mergeado):** a D6 e a D8 põem o manifesto do parecer no
+> expand, e nenhum PR da lane o tocou; o §Deferimento tinha a lane como dona de tudo. O texto
+> original fica como evidência; a correção está em §Correção 2026-10-09. Nenhuma decisão
+> (D1–D8) muda.
 
 > Co-design 2026-10-08: `financial-planner` (a regra), `data-engineer` (o contrato e a ordem
 > dos PRs), `product-designer` (a copy, que aqui é chave gravada). Executa o que a
@@ -129,6 +135,9 @@ mede sobre `total`, a mesma base do `pct` publicado.
 O nome do enum é permanente (chave gravada e rótulo exibido). PR-A: schema, TS, leitores
 null-safe, copy e manifesto, sem produtor emitindo. PR-B: produtor, gate e rebaseline.
 
+> ⚠️ *Corrigido em 2026-10-09:* o manifesto do parecer não entrou no PR-A nem no PR-B —
+> §Correção 2026-10-09, item 1.
+
 ## Consequências
 
 - **U5 não move número.** A residência é identificada; só o `nome` dos itens desconhecidos e
@@ -149,6 +158,9 @@ o LLM seguiria lendo "Investimento"); eco do veredito em `investimentos` (veredi
 diverge — os produtores leem o bloco publicado e a `classificacao_imovel` por item).
 
 ## Deferimento datado — 2026-10-08 (dono: [[A40.l122]])
+
+> ⚠️ *Corrigido em 2026-10-09:* destinos por item em §Correção 2026-10-09, item 3. O item 6
+> nasceu em 2026-10-09, com o #2233.
 
 1. `uso_pessoal` e `nu_proprietario` saem do ranking ([[ADR-420]] §D1) — o subtítulo do card
    promete isso e é falso hoje. Destrava com D4 entregue.
@@ -177,3 +189,16 @@ oráculo do estado de DB da fixture ([[ADR-439]] D7), matriz de regimes (identif
 identificada + desconhecido, `rented`, os quatro motivos, `sem_valor` nas duas formas),
 mutação do predicado (sempre verdadeiro e sempre falso), conservação em centavos e coerência
 entre a classe do item no ranking e a linha da tabela.
+
+## Correção 2026-10-09 — o manifesto ficou fora do expand, e o adiado ganha destino
+
+1. **D6 e D8.** Nem o #2096 nem o #2233 tocaram `config/prompts/`: o manifesto do parecer não
+   declara a linha nova nem o resíduo. O que a D6 põe no rótulo do manifesto e a D8 no PR-A vai
+   para o bump único do manifest, na [[A40.l8]]. A `description` do schema e a fixture entraram.
+2. **Item 5 reconciliado.** A [[A40.l123]] (#2117, manifest 2.21.0) já leva ao parecer o veredito
+   da residência (`status` e `motivo`) e a ressalva da concentração. O eval 2.20.0 × 2.21.0 não
+   existe mais: o eval do dono acompanha o bump da l8.
+3. **Destinos.** Item 1: PR-D da [[A40.l122]], P1. Do item 5, o alcance (escape de
+   `total_imoveis_uso_nao_apurado`, hint de `ratios`, regra em `narrative_hints`, bump) vai para a
+   [[A40.l8]]; a guarda determinística, a exceção de tom da S3 e os itens 2, 3, 4 e 6 vão para
+   [[PLAN-report-trust]] §Deferimentos da A40.l122.

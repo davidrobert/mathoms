@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from decimal import Decimal
 
 import pytest
@@ -15,7 +17,13 @@ from pipeline.domain.services.section_summary_generator import (
     SectionSummaryGenerator,
     SectionSummaryGeneratorConfig,
 )
-from tests.fakes.llm import FakeLLMRaisingClient, FakeLLMSuccess, make_fake_fallback
+from pipeline.llm.schemas.section_summaries import SectionSummaryOutput
+from tests.fakes.llm import (
+    FakeLLMRaisingClient,
+    FakeLLMSuccess,
+    nunca_cita_dinheiro,
+    sempre_cita_dinheiro,
+)
 
 _TEMPLATE = PromptTemplate(
     system_prompt="You are a financial editor.",
@@ -24,21 +32,21 @@ _TEMPLATE = PromptTemplate(
 _TEMPLATES = {"S1": _TEMPLATE}
 
 
-def _make_generator(*, llm, fallback_text="fallback determinístico", config=None):
+def _make_generator(*, llm, config=None):
     return SectionSummaryGenerator(
         llm_client=llm,
         cache=InMemoryLLMCache(),
-        fallback=make_fake_fallback(fallback_text),
+        cites_money=nunca_cita_dinheiro,
         templates=_TEMPLATES,
         config=config or SectionSummaryGeneratorConfig(),
     )
 
 
-def _make_generator_with_cache(*, llm, cache, fallback_text="fallback"):
+def _make_generator_with_cache(*, llm, cache, cites_money=nunca_cita_dinheiro):
     return SectionSummaryGenerator(
         llm_client=llm,
         cache=cache,
-        fallback=make_fake_fallback(fallback_text),
+        cites_money=cites_money,
         templates=_TEMPLATES,
         config=SectionSummaryGeneratorConfig(),
     )
@@ -68,9 +76,16 @@ def test_llm_success_returns_source_llm():
 # ─── Cenário 2: Cache hit ───────────────────────────────────────────
 
 
+def _chave_esperada(*, workspace_id: int, snapshot_hash: str) -> str:
+    schema = json.dumps(SectionSummaryOutput.model_json_schema(), sort_keys=True)
+    fingerprint = hashlib.sha256(schema.encode("utf-8")).hexdigest()[:12]
+    escopo = f"v0:claude-haiku-4-5:{fingerprint}"
+    return f"mathoms:llm:section_summary:{escopo}:{workspace_id}:{snapshot_hash}:S1"
+
+
 def test_cache_hit_skips_llm_call():
     cache = InMemoryLLMCache()
-    cache_key = "mathoms:llm:section_summary:v0:1:precachehash:S1"
+    cache_key = _chave_esperada(workspace_id=1, snapshot_hash="precachehash")
     cache.set(cache_key, "Texto cacheado prévio.", ttl_s=3600)
     fake = FakeLLMSuccess(text="Não deveria ser chamado.")
     gen = _make_generator_with_cache(llm=fake, cache=cache)
@@ -90,7 +105,7 @@ def test_cache_hit_skips_llm_call():
 
 def test_llm_timeout_falls_back_with_reason_timeout():
     fake = FakeLLMRaisingClient(error=TimeoutError("request timed out after 8s"))
-    gen = _make_generator(llm=fake, fallback_text="determinístico-timeout")
+    gen = _make_generator(llm=fake)
     result = gen.generate(
         section_id="S1",
         snapshot_hash="hash_timeout",
@@ -98,7 +113,7 @@ def test_llm_timeout_falls_back_with_reason_timeout():
         snapshot_data={"x": 1},
     )
     assert result.source == "fallback"
-    assert result.text == "determinístico-timeout"
+    assert result.text == ""  # seção ausente: a precedência da ADR-356 decide no renderer
     assert result.fallback_reason == "timeout"
 
 
@@ -107,7 +122,7 @@ def test_llm_timeout_falls_back_with_reason_timeout():
 
 def test_llm_rate_limit_falls_back_with_reason_rate_limit():
     fake = FakeLLMRaisingClient(error=RuntimeError("HTTP 429: too many requests"))
-    gen = _make_generator(llm=fake, fallback_text="determinístico-rl")
+    gen = _make_generator(llm=fake)
     result = gen.generate(
         section_id="S1",
         snapshot_hash="hash_rl",
@@ -116,7 +131,7 @@ def test_llm_rate_limit_falls_back_with_reason_rate_limit():
     )
     assert result.source == "fallback"
     assert result.fallback_reason == "rate_limit"
-    assert result.text == "determinístico-rl"
+    assert result.text == ""
 
 
 # ─── Cenário 5: LLM JSON inválido (Instructor parse error) ──────────
@@ -124,7 +139,7 @@ def test_llm_rate_limit_falls_back_with_reason_rate_limit():
 
 def test_llm_invalid_json_falls_back_with_reason_invalid_json():
     fake = FakeLLMRaisingClient(error=ValueError("pydantic validation error: missing summary_md"))
-    gen = _make_generator(llm=fake, fallback_text="determinístico-json")
+    gen = _make_generator(llm=fake)
     result = gen.generate(
         section_id="S1",
         snapshot_hash="hash_json",
@@ -159,7 +174,7 @@ def _make_generator_with_version(*, llm, cache, prompt_version):
     return SectionSummaryGenerator(
         llm_client=llm,
         cache=cache,
-        fallback=make_fake_fallback("fallback"),
+        cites_money=nunca_cita_dinheiro,
         templates=_TEMPLATES,
         config=SectionSummaryGeneratorConfig(prompt_version=prompt_version),
     )
@@ -189,7 +204,7 @@ def test_prompt_version_bump_invalidates_cache():
 
 def test_unknown_section_id_falls_back_with_reason_template_missing():
     fake = FakeLLMSuccess()
-    gen = _make_generator(llm=fake, fallback_text="determinístico-unknown")
+    gen = _make_generator(llm=fake)
     result = gen.generate(
         section_id="UNKNOWN_SECTION",
         snapshot_hash="hash_unknown",
@@ -198,6 +213,26 @@ def test_unknown_section_id_falls_back_with_reason_template_missing():
     )
     assert result.source == "fallback"
     assert result.fallback_reason == "template_missing"
+    assert result.text == ""
+    assert fake.calls == 0
+
+
+# ─── Cenário extra: slice vazio não chama o LLM ─────────────────────
+# Frase genérica escrita sem dado venceria as camadas 2 e 3 da ADR-356.
+
+
+def test_empty_slice_skips_llm_and_leaves_section_absent():
+    fake = FakeLLMSuccess()
+    gen = _make_generator(llm=fake)
+    result = gen.generate(
+        section_id="S1",
+        snapshot_hash="hash_vazio",
+        workspace_id=1,
+        snapshot_data={},
+    )
+    assert result.source == "fallback"
+    assert result.fallback_reason == "empty_slice"
+    assert result.text == ""
     assert fake.calls == 0
 
 
@@ -232,15 +267,56 @@ def test_cache_key_format_matches_adr_144():
         workspace_id=42,
         snapshot_data={"x": 1},
     )
-    expected_key = "mathoms:llm:section_summary:v0:42:abc123:S1"
+    expected_key = _chave_esperada(workspace_id=42, snapshot_hash="abc123")
     assert cache.get(expected_key) is not None
 
 
-# ─── Cenário extra: SectionSummaryOutput valida tone ────────────────
+# A chave cobre o que vai ao modelo e o hash do slice não cobre. O texto do
+# prompt é coberto pela `version` (gate de bump). O modelo e o schema de saída
+# (que no Mode.TOOLS vai ao modelo e o gate não vê) entram na chave: sem eles,
+# trocar o modelo servia o texto do anterior por até 24h.
+def test_trocar_o_modelo_invalida_o_cache():
+    cache = InMemoryLLMCache()
+    kwargs = {"section_id": "S1", "snapshot_hash": "h", "workspace_id": 1}
+    for model in ("claude-haiku-4-5", "claude-sonnet-4-6"):
+        fake = FakeLLMSuccess(text=f"texto do {model}")
+        gen = SectionSummaryGenerator(
+            llm_client=fake,
+            cache=cache,
+            cites_money=nunca_cita_dinheiro,
+            templates=_TEMPLATES,
+            config=SectionSummaryGeneratorConfig(model=model),
+        )
+        result = gen.generate(snapshot_data={"x": 1}, **kwargs)
+        assert (result.source, result.text) == ("llm", f"texto do {model}")
 
 
-def test_section_summary_output_rejects_invalid_tone():
-    from pipeline.llm.schemas.section_summaries import SectionSummaryOutput
+# ─── Contrato de saída: só o campo que o generator lê ───────────────
+# `tone` e `key_metric_ref` saíram no prompt 2.0.0 por não terem leitor (a
+# classe da A40.l117: o prompt promete o que ninguém lê). Campo novo aqui
+# exige leitor no generator e no renderer.
 
-    with pytest.raises(Exception):
-        SectionSummaryOutput(summary_md="ok " * 5, tone="invalid_tone")  # type: ignore[arg-type]
+
+def test_saida_do_llm_so_tem_o_campo_que_o_generator_le():
+    assert set(SectionSummaryOutput.model_fields) == {"summary_md"}
+
+
+# ─── Cenário extra: prosa com valor monetário é descartada ──────────
+# O prompt proíbe R$ (ADR-090) e a 2.0.0 tirou o `key_metric_ref` que oferecia
+# alternativa. Pós-check em vez de reask: o retry do Instructor não chega à
+# telemetria, custa até 3× e sairia rotulado `invalid_json`.
+
+
+def test_monetary_inline_is_discarded_with_tokens_counted_and_not_cached():
+    cache = InMemoryLLMCache()
+    fake = FakeLLMSuccess(text="Texto que cita valor.", prompt_tokens=2000, completion_tokens=500)
+    gen = _make_generator_with_cache(llm=fake, cache=cache, cites_money=sempre_cita_dinheiro)
+    kwargs = {"section_id": "S1", "snapshot_hash": "h", "workspace_id": 1}
+    first = gen.generate(snapshot_data={"x": 1}, **kwargs)
+    assert first.source == "fallback"
+    assert first.fallback_reason == "monetary_inline"
+    assert first.text == ""
+    assert first.cost_usd == Decimal("0.004500")  # tokens pagos entram na conta
+    second = gen.generate(snapshot_data={"x": 1}, **kwargs)
+    assert second.fallback_reason == "monetary_inline"  # descarte não vira cache
+    assert fake.calls == 2
