@@ -30,12 +30,18 @@ Incidentes **manuais** na mesma ferramenta quando o problema for conhecido antes
 
 ### 2.2 Link no aplicativo
 
-Definir no build do frontend:
+Definir no build do frontend — o `next build` inlina a URL no bundle, então
+mudar o valor exige rebuild:
 
 ```bash
-# frontend/.env.local (não commitar)
+# .env.prod.local (não commitar) — compose de produção e plataforma de deploy
 NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL=https://status.seudominio.com
 ```
+
+No Docker o valor entra por build-arg (`frontend/Dockerfile` + `build.args` do
+`docker-compose.prod.yml`, interpolado do `--env-file`). `frontend/.env*` **não**
+entra no contexto de build (`.dockerignore`), então `frontend/.env.local` só
+vale para o `npm run dev`.
 
 Com isso, o rodapé de **login**, **cadastro** e **área logada** exibe **“Status e incidentes”** (abre em nova aba). Sem a variável, o link não aparece.
 
