@@ -208,6 +208,19 @@ Ranges em compact: travessão `—` (não hífen). `R$ 1 mi — R$ 5 mi`.
 **Não** abreviar com `R$ 1k–10k` — `k` quebra leitura em PT-BR e
 mistura sistemas. Use `mil` / `mi` / `bi`.
 
+**Em gráfico**, a forma segue o papel do número, não a faixa da tabela acima:
+
+| Papel | Forma | Exemplo | Helper (`@/lib/format`) |
+| --- | --- | --- | --- |
+| Eixo monetário | Completa sem centavos; compact se a escala chega a milhões | `R$ 20.000` · `R$ 1,5 mi` | `formatBRLAxisTick` |
+| Rótulo de dado (fatia, barra) | Compact em toda faixa, decimal só abaixo de 10 | `R$ 4,6 mil` · `R$ 23 mil` · `R$ 1,2 mi` | `formatBRLDataLabel` |
+
+`R$` em todo tick, e um eixo não mistura formas: compacta todos os ticks ou
+nenhum. No eixo, o compact não economiza largura nesta faixa (`R$ 120 mil` e
+`R$ 120.000` têm o mesmo tamanho). O rótulo de dado disputa espaço com a fatia,
+por isso dispensa a casa que o §4.5 dá ao compact; o valor completo fica no
+tooltip.
+
 ### 4.3 Zero vs. dado ausente (regra crítica em fintech)
 
 - **Zero real** → `R$ 0,00` (preto/cinza neutro, NÃO em verde/vermelho).
@@ -230,7 +243,9 @@ quando o dado simplesmente não foi capturado.
 
 - Em **dado bruto** (transação, fatura, extrato): preservar centavos.
 - Em **agregados** (KPI, card de síntese): half-up para 2 decimais.
-- Em **compact** (`mi`, `mil`): 1 decimal (`R$ 4,2 mi`).
+- Em **compact** (`mi`, `mil`): 1 decimal (`R$ 4,2 mi`). Exceção: o rótulo
+  de dado de gráfico arredonda a 2 dígitos significativos (§4.2) —
+  `R$ 123 mil`, não `R$ 123,5 mil`.
 - **Nunca** usar `float` para arredondar (ADR-090) — `Money.brl()` /
   `Decimal`. Arredondamento é responsabilidade do backend; UI apenas
   formata.

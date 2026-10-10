@@ -14,6 +14,15 @@ from typing import Any
 
 _INSTRUMENTED = False
 
+# `FastAPI(telemetry=...)`: os 4 emissores nativos do fastapi ≥0.142 desligados,
+# explícitos em código (não env `FASTAPI_OTEL_*`, que diverge entre api e deploy).
+NATIVE_TELEMETRY_OFF: dict[str, bool] = {
+    "tracing": False,
+    "metrics": False,
+    "logs": False,
+    "operation_spans": False,
+}
+
 
 def is_otel_enabled() -> bool:
     return bool(os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "").strip())

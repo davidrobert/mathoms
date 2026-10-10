@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.security import create_access_token
 from backend.app.models.user import User
-from backend.tests._app_routes import effective_routes
+from backend.tests._app_routes import effective_routes, openapi_snapshot_operations
 from backend.tests.factories import make_user, make_workspace
 
 
@@ -97,8 +97,17 @@ async def test_workspace_get_endpoints_block_cross_tenant_access(
     # Se o fuzz pula > 80% dos endpoints, perdemos cobertura — logue mas
     # não quebra (alguns endpoints exigem body POST, fora do escopo
     # deste fuzz).
-    total = sum(1 for _, methods in _workspace_get_routes() if "GET" in methods)
-    assert total > 0, "No /api/v1/workspaces/{workspace_id}/... GET routes registered"
+    fuzzed = {path for path, methods in _workspace_get_routes() if "GET" in methods}
+    expected = {
+        path
+        for method, path in openapi_snapshot_operations()
+        if method == "GET" and "{workspace_id}" in path and path.startswith("/api/v1/")
+    }
+    # Não-vácuo por conjunto, não por contagem: o fastapi 0.137 deixou 0 rotas visíveis.
+    assert expected and expected <= fuzzed, (
+        f"fuzz de tenancy não viu {len(expected - fuzzed)} GET(s) de workspace do openapi.json "
+        f"(ex.: {sorted(expected - fuzzed)[:3]})"
+    )
     # Smoke: ws_a (próprio) precisa ser acessível para confirmar que não
     # estamos só dando 403 pra tudo.
     own_path = _instantiate_path(
