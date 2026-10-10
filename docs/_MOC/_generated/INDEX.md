@@ -438,10 +438,11 @@
 | ADR-441 | adr | Decidido |  | Erro de banco cruza fronteira de persistência por shape, nunca por valor | `adr/441-erro-de-banco-cruza-fronteira-de-persistencia-por-shape-nunca-por-valor.md` |
 | ADR-442 | adr | Decidido |  | Valor monetário de workspace real não entra no repositório: denylist local com HMAC e gate em commit e push | `adr/442-valor-de-workspace-real-nao-entra-no-repositorio.md` |
 | ADR-443 | adr | Decidido |  | Stage roda uma vez por run — não há retry de stage em executor nenhum | `adr/443-stage-roda-uma-vez-por-run-sem-retry-de-stage.md` |
-| ADR-444 | adr | Proposto |  | Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre o que pode ser a residência | `adr/444-imovel-de-uso-nao-apurado-entra-na-carteira-com-valor-e-sem-peso.md` |
+| ADR-444 | adr | Decidido |  | Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre o que pode ser a residência | `adr/444-imovel-de-uso-nao-apurado-entra-na-carteira-com-valor-e-sem-peso.md` |
 | ADR-445 | adr | Proposto |  | Transação de escrita não atravessa I/O lento: o write-lock é medido no engine, o SQLite de dev vira envelope guardado, e o write-behind de artefatos fica adiado com gatilho | `adr/445-transacao-de-escrita-nao-atravessa-io-lento.md` |
 | ADR-447 | adr | Decidido |  | A classe da falha sai do objeto vivo e atravessa o executor no detail do stage | `adr/447-classe-da-falha-sai-do-objeto-vivo-e-atravessa-o-executor.md` |
 | ADR-448 | adr | Decidido |  | Bypass do Ruleset sai do papel Admin: break-glass por concessão temporária para um merge | `adr/448-bypass-do-ruleset-sai-do-papel-admin-break-glass-por-concessao.md` |
+| ADR-449 | adr | Decidido |  | Major npm bloqueado por peer vira pausa versionada; desbloqueado vira migração | `adr/449-major-npm-bloqueado-por-peer-vira-pausa-versionada.md` |
 | ARCHIVE-pre-a6 | archive-index |  |  | Histórico pré-Sprint A6 (F6.5 + Bootstrap blocks) | `sprint/_archive_pre_a6/_README.md` |
 | CHG-2026-04-12-F0 | changelog-entry |  | F0 |  | `sprint/F0/changelog/CHG-2026-04-12-F0.md` |
 | CHG-2026-04-13-F1 | changelog-entry |  | F1 |  | `sprint/F1/changelog/CHG-2026-04-13-F1.md` |

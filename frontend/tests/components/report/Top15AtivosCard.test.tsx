@@ -262,4 +262,12 @@ describe("<Top15AtivosCard /> — imóvel com uso não apurado (ADR-444)", () =>
     );
     expect(screen.getByText(/Top 3 somam 37,0% da carteira/)).toBeInTheDocument();
   });
+
+  it("só o rótulo longo quebra linha — as classes curtas seguem nowrap", () => {
+    render(<Top15AtivosCard data={{ top_ativos: comCasaNoTopo }} />);
+    expect(screen.getByLabelText("Classe: Imóveis com uso não apurado")).toHaveClass(
+      "whitespace-normal",
+    );
+    expect(screen.getAllByLabelText("Classe: Renda Fixa")[0]).toHaveClass("whitespace-nowrap");
+  });
 });

@@ -223,6 +223,26 @@ flags), não o domínio (código idêntico).
   valores com backstop `⊆ divergência(Py,Py)`. Prosa não é value-gated.
 - **Make target owner-run** (custo LLM) — alimenta o gate humano; não é CI.
 
+### A5 — cauda (`from_stage`) — 2026-10-09
+
+A1–A4 comparam runs completos, e a leitura pinada do `from_stage` ([[ADR-291]]) fica fora
+delas. Até 2026-10-09 o `HttpPipelineClient` não reenviava o pin ([[ADR-303]] §Emenda
+2026-10-09 — D2). Sob o shell, a cauda lia E3/E4/E5 do run corrente, e o parecer
+reprocessado fechava `completed` sem parecer, verde nos dois braços. O gatilho #2 de
+rollback não vê esse caso.
+
+- **Grupos.** Tier-1: `from_stage` = `categorize_transactions` (lê E3),
+  `analyze_finances` (E3+E4) e `validate_cross` (E5). Tier-2: `review_finances_holistic`,
+  o único desfecho silencioso. **Fora:** `generate_narratives`, que regrava o E5 no run
+  corrente; o 1º braço viraria a base do 2º.
+- **Ordem.** Um run completo serve de base; os grupos rodam um de cada vez, porque a
+  cauda E4/E5 grava E5 e vira a base do grupo seguinte.
+- **Pré-condição.** Dentro do grupo, os braços Py, controle Py↔Py e Go gravam o mesmo
+  `pipeline_runs.base_run_id`. Divergiu → exit 2 de harness, não veredito.
+- **Critério.** `golden_diff` value-exact nas rows do run de cauda **e** paridade de
+  desfecho (status dos `stage_logs` e do run). O `validate_cross` não grava row e o skip do
+  parecer não deixa nada, então o diff de artefato sozinho é cego a eles.
+
 ## Fase B — gate humano (obrigatório, não-pulável — [[ADR-150]] §7)
 
 Owner roda o protocolo [SMOKE_TEST_HUMAN](../../../reference/SMOKE_TEST_HUMAN.md)
@@ -307,7 +327,7 @@ Free/Premium, executor=Go, status, duração vs SLO, timestamp); falhas + classe
 (shell vs domínio); **shell saudável em 100% dos runs** (o "uptime :8002 ≥99%" de
 calendário é **N/A** no dogfood — o shell sobe por sessão de trabalho, não 24×7);
 **parity check semanal** (double-run: `go-off` → re-run Python → golden_diff
-cents=0 + envelope=0); pico RSS + zumbis (zero); **zero `database is locked`**
+cents=0 + envelope=0, mais um grupo de cauda da §A5 por semana); pico RSS + zumbis (zero); **zero `database is locked`**
 (gatilho 8); resultado do gate humano; ledger de rollback (contagem 0 exigida).
 
 **Invariante diário do ledger (2026-10-09):** zero par (run, stage) com artefato
@@ -376,6 +396,8 @@ procedimento parity double-run pronto; (7) `go-off ENV=native` testado no bake.
   — ver pré-condição 2 para por que a asserção não é por telemetria de artefato.
 - **Tier-2:** envelope WS shape+sequência = 0; span attrs normalizados exatos +
   trace contínuo; subtrees LLM estruturais; `⊆ divergência(Py,Py)` nos valores.
+- **Cauda (§A5):** os 4 grupos com o mesmo `base_run_id` nos braços, diff de artefato = 0
+  e desfecho idêntico.
 - **Gate humano:** SMOKE_TEST_HUMAN PASS em `/reports/[id]` (run full do bake).
 - **CI:** job `go-parity-deterministic` **DEFERIDO** (decisão 2026-07-31, ver
   §Decisão abaixo). O Tier-1 é make target owner-run local; o Tier-2 é owner-run
@@ -574,6 +596,7 @@ confundida. Sem isso, todo achado exigiria o experimento manual acima.
 | Pré-condição 2 (0-LLM) | ⚠️ **conclusão caiu** — o Tier-1 de 03/08 gastou 1 chamada LLM por braço Go, invisível à asserção antiga (§B.1). #1151 endureceu a asserção; com ela o corpus real **não passa** (18–19 escalações), logo "não é preciso fixture sintética" precisa ser re-decidido (§B.3 item 5) |
 | A4 — Tier-2 (WS via `psubscribe` pré-dispatch) | ✅ #1137 — orquestração pronta; **execução é owner-run** (custo LLM) |
 | Doc — RUNBOOK §11 + template do ledger de soak | ✅ #1137 |
+| A5 — cauda (`from_stage`) no harness | ⛔ **aberto** (2026-10-09) — o pin chega ao shell; `dev/go_parity_run.py` ainda não dispara cauda |
 | Job CI `go-parity-deterministic` | ⛔ **deferido** (§Decisão 2026-07-31) |
 | Fase B — gate humano | ⏸ owner |
 | Fase C — flip + soak | ⏸ owner |
@@ -606,3 +629,9 @@ confundida. Sem isso, todo achado exigiria o experimento manual acima.
 4. Depois disso: re-rodar Tier-1 (agora intercalado, com seed fixo e `LLM_FREE=1`) →
    Tier-2 (custa LLM; exige a chave exportada no shell) → gate humano → flip → soak com o
    ledger do RUNBOOK §11.3.
+
+**Bloqueio novo (2026-10-09) — o harness não dispara cauda.** A §A5 é inexecutável enquanto
+`dev/go_parity_run.py` só disparar runs completos: falta `--from-stage`, a checagem do
+`base_run_id` comum entre os braços e a paridade de desfecho. Dono: `senior-cto` (Fase A).
+Bloqueia o bake, não o código. O pin já chega ao shell desde a [[ADR-303]] §Emenda
+2026-10-09 — D2. Retomar antes do re-run do Tier-1 do item 4.

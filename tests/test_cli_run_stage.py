@@ -288,6 +288,26 @@ def test_cli_base_run_id_pins_input_to_base_run(tenant_minimal, artifact_db, mon
     assert _read_single_e3(artifact_db, "run-pinado")["transacoes"][0]["valor"] == 100.0
 
 
+def test_cli_pin_chega_ao_ctx_igual_ao_do_store():
+    """ADR-291: a hidratação recebe o pin do store — ctx remoto sem `None` sobre store pinado."""
+    from pipeline.cli_run_stage import _fallback_stages, _hydration_kwargs, build_parser
+
+    args = build_parser().parse_args(
+        [
+            *_run_stage_args(Path("/ws"), "run-cauda"),
+            "--base-run-id",
+            "run-base",
+            "--base-run-fallback-stages",
+            "E3,reconcile_transactions",
+        ]
+    )
+    kwargs = _hydration_kwargs(args)
+
+    assert kwargs["base_run_id"] == "run-base"
+    assert kwargs["base_run_fallback_stages"] == _fallback_stages(args)
+    assert _fallback_stages(args) == frozenset({"E3", "reconcile_transactions"})
+
+
 def test_cli_unknown_stage_exits_2_listing_valid(tenant_minimal, artifact_db):
     proc = _run_cli(
         [

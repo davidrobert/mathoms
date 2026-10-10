@@ -288,6 +288,13 @@ parser não soube ler — o run morre em E2 **antes** de o fallback LLM existir.
 > **Correção 2026-10-09.** Só em lote só de stubs. Em lote misto o E2 termina `completed`
 > sem o extrato: `processados` conta o arquivo antes do write e mantém o `success` — perda
 > silenciosa, bloqueador do flip no §1.1 do runbook.
+>
+> **Adendo 2026-10-09 (PR #2247).** No stub, quem mantém o `success` é o documento
+> irmão: o stub nunca entra em `processados`, e a falha do write ia para
+> `erros_validacao` (o §1.2 do runbook descreve certo). "`processados` conta o arquivo
+> antes do write" é o caminho do documento **com** parser. Resolvido no mesmo PR: a
+> exceção do store propaga, e o run morre em E2 também em lote misto, como o parágrafo
+> acima afirma.
 
 O gate não podia ver isso. [`test_e2_schema_strict_corpus.py:353`](../../../../tests/test_e2_schema_strict_corpus.py)
 enumera `registry._ALL_PARSERS`, e o stub não é parser registrado; pior, o helper

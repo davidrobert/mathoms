@@ -66,6 +66,8 @@ def run(
     # Stage succeeds se houve progresso OU não houve erro. Falhas por-doc ficam
     # registradas em `stats["erros_validacao"]` e viram "Sem extrato" no UI —
     # não bloqueiam o pipeline quando parte do batch extraiu com sucesso.
+    # Vale para falha de PARSE: a do store (write recusado em strict, DB) não
+    # chega aqui — propaga de `run_with_store` e derruba o stage.
     detail: dict = {
         "success": stats["erros_validacao"] == 0 or stats["processados"] > 0,
         "total": stats["processados"],

@@ -50,12 +50,20 @@ function classeColor(classe: string): string {
   return CLASSE_TOKEN[classe] ?? "var(--surface-muted-foreground)";
 }
 
+// ADR-444: o rótulo da linha sem peso é o único longo o bastante para estourar a caixa
+// A4 do PDF; só ele quebra linha — as classes curtas seguem `nowrap` e o print delas
+// não se move.
+const CLASSE_LONGA = "Imóveis com uso não apurado";
+
 function ClasseBadge({ classe }: { classe: string }) {
   const color = classeColor(classe);
   return (
     <span
       aria-label={`Classe: ${classe}`}
-      className="inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium"
+      className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+        classe === CLASSE_LONGA ? "whitespace-normal" : "whitespace-nowrap",
+      )}
       style={{
         color,
         backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`,
