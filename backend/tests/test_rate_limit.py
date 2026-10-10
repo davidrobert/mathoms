@@ -79,9 +79,11 @@ class _FakeRequest:
         self.client = type("C", (), {"host": host})() if host else None
 
 
-def test_client_ip_key_respeita_x_forwarded_for() -> None:
-    req = _FakeRequest(headers={"x-forwarded-for": "203.0.113.7, 10.0.0.1"})
-    assert client_ip_key(req) == "203.0.113.7"
+def test_client_ip_key_ignora_x_forwarded_for_cru() -> None:
+    """O middleware já resolveu o XFF; o header cru é texto do cliente (ADR-232)."""
+    req = _FakeRequest(headers={"x-forwarded-for": "203.0.113.7, 10.0.0.1"}, host="198.51.100.4")
+    assert client_ip_key(req) == "198.51.100.4"
+    assert client_ip_key(_FakeRequest(host=None)) == "unknown"
 
 
 def test_workspace_key_usa_path_param_e_cai_no_ip() -> None:
