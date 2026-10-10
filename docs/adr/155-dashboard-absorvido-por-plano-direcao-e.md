@@ -132,5 +132,9 @@ procede: `DashboardData`, `AporteItem` e `InvestimentoDeltaItem` não têm
 consumidor no `/plano`, que lê o `/v1/dashboard` (kpis, charts, alerts). O
 comentário do arquivo passou a dizer isso.
 
+Em seguida, os três tipos saíram do arquivo, e o comentário saiu com eles: não
+havia consumidor em nenhum lugar do frontend, e o shape só documentava uma
+leitura que não existe.
+
 A decisão desta ADR — `/dashboard` absorvido por `/plano`, uma home com três
 camadas — não muda.
