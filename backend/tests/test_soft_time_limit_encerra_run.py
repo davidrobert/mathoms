@@ -375,9 +375,9 @@ def _stub_task_internals(monkeypatch, seen: dict) -> None:
     """Tudo em volta do prazo vira no-op; o que sobra é a fiação dele."""
     import backend.app.tasks.pipeline_task as task_module
 
-    def _setup(*args):
-        seen["hooks"] = args[-1]
-        return SimpleNamespace(), None
+    def _setup(*_args, run_deadline, **_kwargs):
+        seen["hooks"] = run_deadline
+        return SimpleNamespace(base_run_id=None, base_run_fallback_stages=frozenset()), None
 
     def _loop(*_args, run_deadline, **_kwargs):
         seen["loop"] = run_deadline

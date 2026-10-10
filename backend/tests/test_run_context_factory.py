@@ -129,6 +129,30 @@ def test_incremental_flags_and_config_dir_precedence(tmp_path, session_factory):
         hydrated.close()
 
 
+def test_pin_do_base_run_chega_ao_ctx(tmp_path, session_factory):
+    """ADR-291: o executor HTTP reenvia o pin a partir do ctx (ADR-303 D2) — fora dele, não há o que reenviar."""
+    hydrated = _build(
+        tmp_path,
+        session_factory,
+        base_run_id="run-base",
+        base_run_fallback_stages=["reconcile_transactions", "E3"],
+    )
+    try:
+        assert hydrated.ctx.base_run_id == "run-base"
+        assert hydrated.ctx.base_run_fallback_stages == frozenset({"E3", "reconcile_transactions"})
+    finally:
+        hydrated.close()
+
+
+def test_sem_pin_o_ctx_nao_pina(tmp_path, session_factory):
+    hydrated = _build(tmp_path, session_factory)
+    try:
+        assert hydrated.ctx.base_run_id is None
+        assert hydrated.ctx.base_run_fallback_stages == frozenset()
+    finally:
+        hydrated.close()
+
+
 @pytest.mark.parametrize("skip_llm, esperado", [(True, False), (False, True)])
 def test_skip_llm_e_a_unica_negacao_da_politica(tmp_path, session_factory, skip_llm, esperado):
     """ADR-355: wire fala `skip_llm` (negativo), ctx fala `llm_calls_allowed` (positivo);
