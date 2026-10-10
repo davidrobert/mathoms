@@ -197,16 +197,17 @@ function deriveInsight(
 }
 
 const CARD_TITLE = "Top 15 Ativos da Carteira";
+// ADR-444 D9: sai da carteira o que a família MARCOU — casa de praia sem marcação segue na lista.
 const CARD_SUBTITLE =
   "Investimentos financeiros e imóveis, ranqueados por valor. " +
-  "Não inclui residência principal nem bens de uso pessoal — esses aparecem " +
-  "em Composição Patrimonial.";
+  "Residência principal e imóveis marcados como uso pessoal ou nu-propriedade " +
+  "ficam fora da carteira e aparecem em Composição Patrimonial.";
 // ADR-444 D3: com item sem peso, a promessa de excluir a residência deixa de ser verdade.
 const CARD_SUBTITLE_SEM_PESO =
   "Investimentos financeiros e imóveis, ranqueados por valor. " +
   "Imóveis com uso não apurado aparecem com valor e sem %: podem incluir a " +
-  "residência principal, que fica fora da carteira. Veículos aparecem em " +
-  "Composição Patrimonial.";
+  "residência principal, que fica fora da carteira. Imóveis marcados como uso " +
+  "pessoal ou nu-propriedade também ficam fora e aparecem em Composição Patrimonial.";
 
 function CardSubtitle({ semPeso = false }: { semPeso?: boolean }) {
   return (
@@ -224,8 +225,8 @@ export function Top15AtivosCard({ data, residencia }: Top15AtivosCardProps) {
       <ReportCard variant="neutral" title={CARD_TITLE}>
         <CardSubtitle />
         <p className="text-sm text-[var(--surface-muted-foreground)]">
-          Sem ativos de carteira neste período. Investimentos e imóveis de
-          renda aparecem aqui após o processamento das posições e do IRPF.
+          Sem ativos de carteira neste período. Investimentos e imóveis
+          aparecem aqui após o processamento das posições e do IRPF.
         </p>
       </ReportCard>
     );

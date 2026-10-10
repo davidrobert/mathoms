@@ -12,6 +12,7 @@ from typing import Any, Mapping
 from pipeline.domain.services.patrimonio_imovel_classifier import (
     CLASSIFICATION_DESCONHECIDO,
     CLASSIFICATION_RESIDENCIA_PRINCIPAL,
+    CLASSIFICATIONS_FORA_DA_ALOCACAO,
     classificacao_do_imovel,
 )
 
@@ -28,6 +29,13 @@ CLASSES_IMOVEL_FISICO: frozenset[str] = frozenset(
 # Fora de `total` e de toda base de carteira: publica valor, nunca percentual.
 CLASSES_SEM_PESO: frozenset[str] = frozenset({CLASSE_IMOVEIS_USO_NAO_APURADO})
 
+# [[ADR-444]] D9: carteira é o que o próximo aporte move — a residência e o que a família
+# declarou não rebalanceável (uso pessoal, nu-propriedade) ficam fora. A lista é a MESMA do
+# numerador da concentração ([[ADR-420]] §D1): duas listas divergiriam caladas.
+_FORA_DA_CARTEIRA: frozenset[str] = (
+    frozenset({CLASSIFICATION_RESIDENCIA_PRINCIPAL}) | CLASSIFICATIONS_FORA_DA_ALOCACAO
+)
+
 
 # Com a residência identificada (ou a família alugando), o desconhecido é não-residência por
 # ELIMINAÇÃO do bem identificado e fica em "Imóveis Investimento" — o resíduo da cota do
@@ -38,9 +46,9 @@ def classe_do_imovel_na_carteira(
     *,
     residencia_no_desconhecido: bool = False,
 ) -> str | None:
-    """`None` para a residência; o desconhecido que pode sê-la entra sem peso."""
+    """`None` fora da carteira; o desconhecido que pode ser a residência entra sem peso."""
     classificacao = classificacao_do_imovel(imovel, overrides_by_property_id)
-    if classificacao == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
+    if classificacao in _FORA_DA_CARTEIRA:
         return None
     if classificacao == CLASSIFICATION_DESCONHECIDO and residencia_no_desconhecido:
         return CLASSE_IMOVEIS_USO_NAO_APURADO

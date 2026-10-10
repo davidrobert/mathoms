@@ -42,7 +42,7 @@ CLASSIFICATIONS_GERADORAS = frozenset({CLASSIFICATION_LOCADO, CLASSIFICATION_COM
 # nenhuma cai em `alocacao` pelo `else`, que é o lado conservador ([[ADR-420]] §D2 —
 # ausência de rótulo não compra verde num KPI de risco). Escrever a lista pelo lado
 # positivo poria o não-classificado FORA do numerador, invertendo o sinal.
-_CLASSIFICATIONS_FORA_DA_ALOCACAO = frozenset(
+CLASSIFICATIONS_FORA_DA_ALOCACAO = frozenset(
     {CLASSIFICATION_USO_PESSOAL, CLASSIFICATION_NU_PROPRIETARIO}
 )
 
@@ -100,7 +100,7 @@ def split_imoveis_alocacao_vs_fora(
         cls = classificacao_do_imovel(im, overrides_by_property_id)
         if cls == CLASSIFICATION_RESIDENCIA_PRINCIPAL:
             continue  # cat_1, fora de cat_2 nos DOIS lados
-        if cls in _CLASSIFICATIONS_FORA_DA_ALOCACAO:
+        if cls in CLASSIFICATIONS_FORA_DA_ALOCACAO:
             fora += imovel_valor(im)
         else:
             alocacao += imovel_valor(im)
@@ -235,6 +235,7 @@ __all__ = [
     "CLASSIFICATION_NU_PROPRIETARIO",
     "CLASSIFICATION_DESCONHECIDO",
     "CLASSIFICATIONS_GERADORAS",
+    "CLASSIFICATIONS_FORA_DA_ALOCACAO",
     "CoberturaClassificacaoImovel",
     "classificacao_do_imovel",
     "cobertura_classificacao_imovel",
