@@ -28,7 +28,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Iterable, List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -55,6 +55,9 @@ from backend.app.services.pipeline.pipeline_adapter import (
     build_config_overrides_from_db,
     build_config_store,
 )
+
+if TYPE_CHECKING:
+    from pipeline.run_deadline import RunDeadline
 
 logger = logging.getLogger(__name__)
 
@@ -152,7 +155,9 @@ def _build_ctx(
     )
 
 
-def _attach_llm_budget_hooks(ctx, ws_id: str, run_id: str) -> None:
+def _attach_llm_budget_hooks(
+    ctx, ws_id: str, run_id: str, run_deadline: Optional[RunDeadline] = None
+) -> None:
     # ADR-173: hard-stop de budget + LLMCallLog em toda chamada LLM. Budget e
     # gasto vêm do DB + cache Redis, mas em SQLite o service CARREGA as calls
     # adiadas da instância até o flush (§Emenda 2026-10-08) — por isso todo
@@ -160,7 +165,7 @@ def _attach_llm_budget_hooks(ctx, ws_id: str, run_id: str) -> None:
     # instância por-stage (HTTP/CLI) só não perde o pendente porque o close flusha.
     from backend.app.services.llm_budget_service import LLMBudgetService
 
-    ctx.llm_call_hooks = LLMBudgetService.for_pipeline_run(ws_id, run_id)
+    ctx.llm_call_hooks = LLMBudgetService.for_pipeline_run(ws_id, run_id, run_deadline=run_deadline)
 
 
 def _attach_llm_response_cache(ctx) -> None:
@@ -210,19 +215,24 @@ def build_hydrated_context(
     incremental: bool = False,
     incremental_doc_paths: Optional[List[str]] = None,
     skip_llm: bool = False,
+    base_run_id: Optional[str] = None,
+    base_run_fallback_stages: Iterable[str] = (),
     materialize_tarefas: bool = False,
     session_factory: Optional[Callable[[], Session]] = None,
+    run_deadline: Optional[RunDeadline] = None,
 ) -> HydratedContext:
     """Cria o ``WorkspaceContext`` hidratado. ``config_dir`` explícito vence; ausente → ``<root>/config``."""
     session = (session_factory or _default_session_factory)()
     ctx = _build_ctx(ws_id, tenant_root, run_id, config_dir, session=session)
     ctx.incremental, ctx.incremental_doc_paths = incremental, list(incremental_doc_paths or [])
+    ctx.base_run_id = base_run_id
+    ctx.base_run_fallback_stages = frozenset(base_run_fallback_stages)
     # ADR-355: ÚNICO ponto de negação entre o vocabulário do wire (``skip_llm``,
     # negativo, filtra stages) e o do contexto (``llm_calls_allowed``, positivo,
     # governa chamada dentro de stage). Espalhar o ``not`` por executor seria
     # três lugares para inverter a polaridade.
     ctx.llm_calls_allowed = not skip_llm
-    _attach_llm_budget_hooks(ctx, ws_id, run_id)
+    _attach_llm_budget_hooks(ctx, ws_id, run_id, run_deadline)
     _attach_llm_response_cache(ctx)
     _attach_llm_metrics_emitter(ctx)
     ctx.ensure_dirs()

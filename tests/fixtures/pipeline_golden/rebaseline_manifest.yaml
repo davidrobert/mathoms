@@ -45,4 +45,24 @@
 #
 # Regra: quem mergeia um rebaseline drena o manifesto logo em seguida. O registro do
 # que mudou vive na lane, no corpo do PR e no histórico do git — não aqui.
-[]
+- golden: dogfood_view_model.json
+  path: investimentos.tabela_classes[Imóveis Investimento].valor
+  old_cents: 6000000000
+  new_cents: 4100000000
+  adr: ADR-444
+  rationale: "apartamento sem override, com a residência não declarada, vai à linha sem peso — correção de medição, não melhora"
+  ref: pipeline/domain/services/investimentos_classes_analyzer.py:38
+- golden: dogfood_view_model.json
+  path: investimentos.total
+  old_cents: 6800000000
+  new_cents: 4900000000
+  adr: ADR-444
+  rationale: "o total investido exclui a linha sem peso (com valor e sem peso) — a casa possível sai da base"
+  ref: pipeline/domain/services/investimentos_classes_analyzer.py:219
+- golden: dogfood_view_model.json
+  path: investimentos.total_imoveis_investimento
+  old_cents: 6000000000
+  new_cents: 4100000000
+  adr: ADR-444
+  rationale: "o subtotal fica só com o imóvel sabidamente não-residência; o resto vai a total_imoveis_uso_nao_apurado"
+  ref: pipeline/domain/services/investimentos_classes_analyzer.py:219

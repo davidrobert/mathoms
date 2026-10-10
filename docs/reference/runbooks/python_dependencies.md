@@ -59,13 +59,52 @@ atualizada para refletir isso.
 > (reportlab/xlwt/pytest-cov/pytest-xdist/fakeredis) seguem inline (fora do lock);
 > pinar via `requirements-test.lock` é débito aberto.
 
-## ⚠️ Constraint crítico: gerar o lock SEMPRE em container linux/amd64
+## ⚠️ Constraint crítico: gerar o lock em linux/amd64 (ou provar que dá no mesmo)
 
-**NUNCA rode `pip-compile` no host Mac (arm64).** Wheels com extensão nativa
-(`uvloop`, `cryptography`, `pydantic-core`, `playwright`, `numpy`) têm hashes
-**diferentes por plataforma**. Um lock gerado em arm64 falha o
-`--require-hashes` no build/CI (que rodam linux/amd64), com mensagem de hash
-mismatch. O Docker daemon precisa estar UP.
+**O caminho default é o container linux/amd64 da Tarefa 1**, com o Docker
+daemon UP. O lock precisa refletir o alvo de prod: cp312, linux x86_64.
+
+**Corrigido em 2026-10-09: o risco não é o hash.** Com o índice PyPI, o
+`--generate-hashes` do pip-tools pega da API JSON os hashes de **todos** os
+arquivos da versão, e o hash não depende do host. Medido: um `pip-compile`
+nativo no Mac arm64 (Python 3.12) sobre os `.in` da `main` deu lock
+**byte-idêntico** ao amd64. O risco real são os **marcadores**
+(`sys_platform`, `platform_machine`, `python_version`), avaliados no host que
+resolve. Uma dep condicionada a linux/x86_64 some do lock gerado no Mac, e o
+`--require-hashes` do build/CI linux falha por dep sem pin.
+
+### Exceção: `-P` em alvos, fora do container (2026-10-09)
+
+Permitida **só** para subir pacotes que já estão no lock (`-P <alvo>`), com
+Python 3.12 no host. Os 4 controles abaixo são obrigatórios e vão descritos na
+descrição do PR. Precedentes: #2240 e #2243.
+
+1. **Antes de editar os `.in`**, regenerar sem `-P` dá lock byte-idêntico ao da
+   `main` (`git diff --quiet requirements.lock`). Isso prova que o host resolve
+   igual ao container para o conjunto atual.
+2. O diff do lock toca só os blocos dos alvos.
+3. O `requires_dist` das versões novas não traz dep nova nem marcador de
+   plataforma. Compare com a versão antiga em
+   `https://pypi.org/pypi/<pacote>/<versão>/json`.
+4. O CI linux instala `--require-hashes` verde. Para o alvo de prod,
+   `pip download --no-deps --only-binary=:all: --platform manylinux_2_28_x86_64
+   --python-version 3.12 --implementation cp --require-hashes -d <dir> -r
+   <pins dos alvos com hashes>` baixa o wheel de cada alvo. O `--platform` não
+   muda a avaliação de marcador, por isso o controle 3 continua separado.
+
+```bash
+python3.12 -m venv _scratch/piptools && _scratch/piptools/bin/pip install -q 'pip-tools==7.6.1' 'click<8.2'
+_scratch/piptools/bin/pip-compile --quiet --generate-hashes --strip-extras \
+  --output-file=requirements.lock backend/requirements.in requirements.in
+git diff --quiet requirements.lock   # controle 1 — antes de tocar os .in
+# suba os pisos nos .in, depois:
+_scratch/piptools/bin/pip-compile --quiet --generate-hashes --strip-extras -P <alvo> \
+  --output-file=requirements.lock backend/requirements.in requirements.in
+```
+
+**O Docker continua obrigatório** para `--upgrade` (Tarefa 4 com re-resolução
+total) e para dependência nova (Tarefa 3). Nesses casos a checagem de marcador
+do controle 3 não escala para a árvore inteira.
 
 ## Tarefa 1 — Regenerar o lockfile (após editar qualquer `.in`)
 
@@ -352,8 +391,11 @@ nasce vermelho até alguém regenerar o `.lock`.
   1. **Merge.** No pip, o piso que o lock já satisfaz entra pelo próprio PR. O
      piso acima do lock vai para o lote semanal (§Triagem da fila pip), não para
      um commit de lock na branch do Dependabot.
-  2. **Lane de migração**, para major que pede trabalho (ex.: vite 6→8,
-     typescript 6→7). O PR pode ficar aberto enquanto sobrar vaga.
+  2. **Lane de migração**, para major que pede trabalho e instala (ex.: vite
+     6→8). O PR pode ficar aberto enquanto sobrar vaga. Major npm que **não
+     instala**, porque o peer de um vizinho o exclui (ex.: typescript 6→7), não
+     fica aberto: vira pausa da saída 3 com linha em `PAUSES` de
+     `dev/check_dependabot_major_pauses.py` ([[ADR-449]]).
   3. **`ignore` no `.github/dependabot.yml`**, com data e condição de retomada no
      comentário (padrão do `ignore` de redis acima). Só depois feche o PR.
 - **Nunca** só fechar o PR nem comentar `@dependabot ignore`. As duas coisas viram

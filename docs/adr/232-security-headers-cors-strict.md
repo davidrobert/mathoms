@@ -5,6 +5,7 @@ title: "Security headers + CORS strict no backend FastAPI (CSP report-only, HSTS
 status: Decidido
 phase: A11.W2
 date: "2026-05-20"
+amended_at: ["2026-10-09"]
 relates_to:
   - "[[ADR-108]]"
   - "[[ADR-110]]"
@@ -23,6 +24,11 @@ tags:
   - status/decidido
   - type/adr
 ---
+
+> **Emenda 2026-10-09:** o IP do cliente passa a ser o hop que o proxy confiável
+> acrescentou ao `X-Forwarded-For`, nunca o mais à esquerda — trust no app
+> (`MATHOMS_FORWARDED_ALLOW_IPS`), `--no-proxy-headers` nos launchers, catch-all
+> aborta o boot. Ver §Emenda 2026-10-09.
 
 ## Contexto
 
@@ -283,3 +289,38 @@ follow-up se/quando necessário (Next.js já tem defaults aceitáveis).
 - [ADR-230](230-security-gates-ci.md) — gates CI já decididos (Trivy, gitleaks); esta ADR cobre runtime.
 - [CSP Level 2 spec](https://www.w3.org/TR/CSP2/) — `Content-Security-Policy-Report-Only`.
 - [OWASP Secure Headers Project](https://owasp.org/www-project-secure-headers/) — referência de defaults.
+
+## Emenda 2026-10-09 — fronteira de trust do `X-Forwarded-For`
+
+**Defeito.** O IP do cliente era o hop **mais à esquerda** do XFF em três sítios
+(`rate_limit.client_ip_key`, `auth._client_ip`, `audit.client_meta`), e o uvicorn
+subia com `--forwarded-allow-ips='*'`, que também devolve o leftmost em
+`request.client`. O leftmost é texto do cliente. No caminho do
+`docker-compose.prod.yml` (cliente → Traefik da plataforma → Next.js → uvicorn; o
+rewrite do Next repassa o XFF intacto, sem acrescentar hop) ele só é o cliente
+real se o Traefik descarta o XFF de entrada. É o default do Traefik e o proxy
+default do Coolify v4 não o muda, mas essa config vive fora do repo. Com
+`forwardedHeaders.insecure`/`trustedIPs` — receita comum para pôr Cloudflare na
+frente —, um hop forjado rotativo nunca enche o balde per-IP de
+`login`/`register`/`refresh` e falsifica o IP do audit log.
+
+**Decisão.**
+
+- **D1** — o trust do XFF é do app: `ProxyHeadersMiddleware` (uvicorn) como
+  middleware mais externo de `main.py`, configurado por
+  `MATHOMS_FORWARDED_ALLOW_IPS` (default loopback + RFC 1918 + ULA, onde ficam
+  Traefik e Next.js na rede Docker; o compose não fixa subnet). Ele só lê o XFF
+  de peer confiável e devolve o primeiro hop não-confiável da direita. Todo
+  caller lê `client_ip()` de `backend/app/services/security/client_ip.py`.
+- **D2** — todo launcher do app roda `--no-proxy-headers`. O proxy-headers do
+  CLI vem ligado por default e lê `FORWARDED_ALLOW_IPS` sem prefixo; com `*`,
+  trocaria o cliente pelo hop forjado antes do middleware do app.
+- **D3** — `*`, `0.0.0.0/0` e `::/0` em `MATHOMS_FORWARDED_ALLOW_IPS` abortam o
+  boot em **todo** ambiente: não há uso legítimo.
+
+**Fora de escopo.** Valores de rate limit inalterados. Chave per-IP de IPv6 por
+/64 (rotacionar /128 é trivial) fica para follow-up.
+
+Co-desenho `sre-devops`. Gate: `backend/tests/test_client_ip_trusted_proxy.py`
+(XFF forjado no endpoint real, faixas de trust, launchers, boot). Operação:
+[RUNBOOK §6.1](../reference/RUNBOOK.md#61-proxy-reverso--de-quem-o-backend-aceita-x-forwarded-for).
