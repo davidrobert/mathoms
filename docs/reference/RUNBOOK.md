@@ -30,12 +30,18 @@ Incidentes **manuais** na mesma ferramenta quando o problema for conhecido antes
 
 ### 2.2 Link no aplicativo
 
-Definir no build do frontend:
+Definir no build do frontend — o `next build` inlina a URL no bundle, então
+mudar o valor exige rebuild:
 
 ```bash
-# frontend/.env.local (não commitar)
+# .env.prod.local (não commitar) — compose de produção e plataforma de deploy
 NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL=https://status.seudominio.com
 ```
+
+No Docker o valor entra por build-arg (`frontend/Dockerfile` + `build.args` do
+`docker-compose.prod.yml`, interpolado do `--env-file`). `frontend/.env*` **não**
+entra no contexto de build (`.dockerignore`), então `frontend/.env.local` só
+vale para o `npm run dev`.
 
 Com isso, o rodapé de **login**, **cadastro** e **área logada** exibe **“Status e incidentes”** (abre em nova aba). Sem a variável, o link não aparece.
 
@@ -166,6 +172,27 @@ obsoleto e arquivar quando essa transição acontecer.
 - **FERNET_KEY**, **JWT secret:** ver SETUP e tarefas F7.
 - Escalação: definir contato on-call antes do beta (preencher aqui quando existir).
 
+### 6.1 Proxy reverso — de quem o backend aceita `X-Forwarded-For`
+
+O IP do cliente (balde per-IP de `login`/`register`/`refresh` e IP do audit log)
+é o primeiro hop **não-confiável** do XFF, lido da direita
+([[ADR-232]] §Emenda 2026-10-09).
+
+- **Env:** `MATHOMS_FORWARDED_ALLOW_IPS` — CSV de IPs/CIDRs dos proxies. Comentada
+  = default loopback + RFC 1918 + ULA (Traefik e Next.js na rede Docker). `*`,
+  `0.0.0.0/0` e `::/0` abortam o boot.
+- **Launchers:** todo `uvicorn backend.app.main:app` roda `--no-proxy-headers`.
+  Não passe `--forwarded-allow-ips` nem exporte `FORWARDED_ALLOW_IPS` (sem
+  prefixo, é a env do CLI do uvicorn).
+- **Verificar a borda ao vivo:** no host, `grep -rn forwardedHeaders` no
+  compose/config do proxy da plataforma. Sem `insecure`/`trustedIPs`, o Traefik
+  descarta o XFF de entrada. Com eles, o hop forjado chega ao app, que continua
+  lendo só o hop que o Traefik acrescentou.
+- **Antes de ligar o proxy laranja do Cloudflare em `app`/`api`:** some as faixas
+  publicadas do Cloudflare a `MATHOMS_FORWARDED_ALLOW_IPS` (e ao `trustedIPs` do
+  Traefik). Sem isso o balde passa a ser por edge do CF, e usuários atrás do mesmo
+  PoP dividem o limite de login.
+
 ---
 
 ## 7. Console interno local (F7F-Local · IA-0)
@@ -233,14 +260,32 @@ em **dev/staging** antes do produto estar em produção ([ADR-116](../DECISIONS.
    Se você rodou o backend de ops em outra porta, exporte
    `INTERNAL_OPS_API_BASE=http://127.0.0.1:<porta>` antes de `npm run dev`.
 
-   Ou via compose: `docker compose -f docker-compose.dev.yml --profile ops up -d --build frontend-ops`
-   → UI em http://127.0.0.1:3110/login (`MATHOMS_DOCKER_OPS_PORT`). Na imagem
-   o rewrite é **build arg** (`MATHOMS_DOCKER_OPS_API_BASE`, default
-   `http://api:8000`): trocar o destino exige `--build`. O `api` do compose
-   ainda não monta `/admin/*` (flag desligada), então ali o login devolve 404 —
-   para operar, use o backend de ops do passo 3 com
-   `MATHOMS_DOCKER_OPS_API_BASE=http://host.docker.internal:8001` (Docker
-   Desktop; no Linux o `host-gateway` não alcança um uvicorn em `127.0.0.1`).
+5. **Ou tudo via compose** (substitui os passos 3–4; o passo 2 continua
+   obrigatório — `config/` entra no container por bind `:ro`):
+
+   ```bash
+   export MATHOMS_INTERNAL_OPS_SESSION_SECRET="$(openssl rand -hex 32)"
+   docker compose -f docker-compose.dev.yml --profile ops up -d --build
+   # UI em http://127.0.0.1:3110/login (MATHOMS_DOCKER_OPS_PORT)
+   ```
+
+   O profile sobe `api-ops` (o único service com `/admin/*` montado — o `api`
+   do cliente segue com a flag desligada) e `frontend-ops`. O `api-ops` não
+   publica porta: só o `frontend-ops` o alcança, pela rede do compose. Ele não
+   migra — sobe depois do `api` healthy; `up --no-deps api-ops` pula essa
+   garantia. Sem o secret, ou com `config/internal_operators.yaml` ausente ou
+   inválido, o entrypoint aborta e o `up` falha com `dependency failed to
+   start`; o motivo está em `docker compose -f docker-compose.dev.yml logs api-ops`.
+   Exporte o mesmo secret em todo `up`: trocar invalida as sessões abertas.
+
+   Na imagem do `frontend-ops` o rewrite é **build arg**
+   (`MATHOMS_DOCKER_OPS_API_BASE`, default `http://api-ops:8000`): trocar o
+   destino exige `--build`, e uma `mathoms-frontend-ops:dev` buildada antes do
+   `api-ops` existir ainda aponta para o `api` (login 404) até o próximo
+   `--build`. Para usar o backend de ops do passo 3 em vez do `api-ops`:
+   `MATHOMS_DOCKER_OPS_API_BASE=http://host.docker.internal:8001` + `up --build
+   --no-deps frontend-ops` (Docker Desktop; no Linux o `host-gateway` não
+   alcança um uvicorn em `127.0.0.1`).
 
 ### 7.3 Operações disponíveis (UI)
 
@@ -735,6 +780,11 @@ Início: YYYY-MM-DD · executor: Go · rollbacks: 0
 |---|---|---|---|---|
 | 1 | | 0 | 0 | ok |
 
+## Parity de cauda (`from_stage`, track F2 §A5) — um grupo por semana
+| semana | from_stage | base_run_id igual nos braços | cents diff | desfecho igual | veredito |
+|---|---|---|---|---|---|
+| 1 | categorize_transactions | sim | 0 | sim | ok |
+
 ## Incidentes
 | data | gatilho | evidência | ação | zerou o relógio? |
 |---|---|---|---|---|
@@ -742,7 +792,7 @@ Início: YYYY-MM-DD · executor: Go · rollbacks: 0
 ## Fechamento (F3 abre quando TODOS verdes)
 - [ ] 14 dias-calendário consecutivos em Go
 - [ ] ≥10 runs E0→E5 reais · [ ] ≥3 com LLM
-- [ ] parity checks semanais todos zero
+- [ ] parity checks semanais todos zero · [ ] parity de cauda zero nos 4 grupos
 - [ ] zero rollback · [ ] zero `database is locked` · [ ] zero zumbi
 - [ ] shell saudável em 100% dos runs
 - [ ] gate humano PASS

@@ -18,7 +18,10 @@ export interface DashboardChart {
 }
 
 export interface DashboardAlert {
-  severity: string;
+  /** Origem no E5: o summary da "Análise Financeira" conta só `ponto_urgente`. */
+  kind: "ponto_urgente" | "aviso";
+  /** Tom decidido pelo backend: `critical` é o ponto urgente de prioridade alta. */
+  severity: "critical" | "warning";
   title: string;
   message: string;
 }

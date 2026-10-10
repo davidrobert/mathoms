@@ -42,3 +42,17 @@ async def test_client_jwt_not_accepted_by_admin(admin_ui_enabled, ops_yaml, auth
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         resp = await ac.get("/admin/users", headers={"Authorization": auth})
     assert resp.status_code == 401
+
+
+# O healthcheck do `api-ops` (docker-compose.dev.yml) lê exatamente este par:
+# 404 em /admin/me = router não montado; 401 = montado e com auth.
+@pytest.mark.asyncio
+async def test_admin_me_404_when_disabled(client) -> None:
+    resp = await client.get("/admin/me")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_admin_me_401_without_cookie(admin_ui_enabled, ops_yaml, client) -> None:
+    resp = await client.get("/admin/me")
+    assert resp.status_code == 401

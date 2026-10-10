@@ -56,6 +56,7 @@ def run(
 
     stats = run_with_store(
         store=store,
+        statements_dir=ctx.data_dir / "financial_statements",
         target_stage=target_stage,
         extratos_only=extratos_only,
         faturas_only=faturas_only,
