@@ -20,6 +20,7 @@ próprio Dockerfile** (paridade com k8s/ECS, que leem a instrução da imagem).
 | Service | Healthcheck | Onde declarado |
 |---|---|---|
 | `api` | `curl -fsS localhost:8000/health` | compose (start_period 60s — alembic) |
+| `api-ops` | `curl localhost:8000/admin/me` exige **401** (404 = `/admin` não montado); não usa `/health`, cujo `inspect` síncrono do Celery trava o event loop até 2s com o worker fora | compose (start_period 30s — sem alembic; profile `ops`) |
 | `worker` | `celery -A backend.app.worker inspect ping` | compose |
 | `beat` | **nenhum** (ver §3) | — |
 | `pipeline-service` | `python -c "urllib...:8001/health"` | `pipeline-service/Dockerfile` |
@@ -105,6 +106,7 @@ docker compose ps --format json | python3 -c "import sys,json;[print(j['Service'
 | `worker` unhealthy mas processa tasks | `start_period` curto / broker lento subindo | confirmar Redis healthy primeiro; subir `start_period` |
 | `worker` `inspect ping` trava | broker inacessível | checar `redis-broker` healthy + DSN |
 | `beat` reiniciando em loop | crash real do scheduler | `logs beat` — não é healthcheck (beat não tem) |
+| `api-ops` reiniciando em loop; `up --profile ops` falha com `dependency failed to start` | entrypoint abortou: secret de sessão ausente/igual ao `MATHOMS_SECRET_KEY`, ou `config/internal_operators.yaml` ausente/inválido | `logs api-ops` nomeia qual; [RUNBOOK §7.2](../RUNBOOK.md) |
 | `pipeline-service` unhealthy | `/health` não responde / porta errada | `docker exec ... python -c "import urllib.request;print(urllib.request.urlopen('http://localhost:8001/health').read())"` |
 
 ---

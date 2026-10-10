@@ -18,6 +18,7 @@ from backend.app.core.internal_ops_auth import (
     decode_session_token,
     load_operators,
     require_internal_operator,
+    validate_internal_ops_config,
     verify_operator_password,
 )
 
@@ -151,3 +152,21 @@ def test_client_token_rejected() -> None:
 def test_principal_actor_format() -> None:
     p = InternalOpsPrincipal(username="alice", role="ops")
     assert p.actor == "ops:alice"
+
+
+def test_validate_config_ok(ops_yaml: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MATHOMS_INTERNAL_OPERATORS_YAML", str(ops_yaml))
+    validate_internal_ops_config()
+
+
+def test_validate_config_rejects_unset_secret(
+    ops_yaml: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("MATHOMS_INTERNAL_OPS_SESSION_SECRET", raising=False)
+    with pytest.raises(InternalOpsConfigError, match="unset"):
+        validate_internal_ops_config(path=ops_yaml)
+
+
+def test_validate_config_rejects_missing_yaml(tmp_path: Path) -> None:
+    with pytest.raises(InternalOpsConfigError, match="não encontrado"):
+        validate_internal_ops_config(path=tmp_path / "nope.yaml")
