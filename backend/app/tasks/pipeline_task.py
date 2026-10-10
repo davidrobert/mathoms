@@ -14,6 +14,7 @@ import logging
 import re
 import time
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
@@ -52,6 +53,7 @@ from backend.app.services.pipeline.events import (
 from backend.app.services.pipeline.pipeline_adapter import (
     build_tasks_payload_sync,
 )
+from backend.app.services.pipeline.pipeline_failure_reasons import TIME_LIMIT_EXCEEDED
 from backend.app.services.pipeline.stage_review_gate import repark_stage_if_undecided
 from backend.app.services.report_tasks_snapshot_service import (
     build_snapshot_sync,
@@ -60,6 +62,7 @@ from backend.app.worker import celery_app
 from pipeline.observability.failure_text import describe_failure
 
 if TYPE_CHECKING:  # `pipeline.*` só é importável após _bootstrap_pipeline_sys_path()
+    from pipeline.run_deadline import RunDeadline
     from pipeline.stage_outcome import StageOutcome
 
 logger = logging.getLogger(__name__)
@@ -515,16 +518,20 @@ def _retry_parked_documents(ws_id: str, tenant_root: Path) -> None:
 # `StageResult(success=False)` nos dois executores. Chega só o que cruza o
 # executor (transporte HTTP, import do runner), e para isso este é o último ponto
 # com o objeto vivo: `reason_class` sai dele, nunca de match sobre a mensagem
-# (ADR-357 §Delta item 1).
+# (ADR-357 §Delta item 1). A exceção é o prazo do run, que `_run_stage` deixa
+# passar e este relança: ele encerra o RUN, e quem o encerra é o loop.
 def _run_stage_once(ctx, stage_name: str, run_stage_fn):
     """Executa o stage uma vez; ``(result, error_msg, tb, reason_class)``, com ``result=None`` se a exceção cruzou o executor."""
     from backend.app.services.pipeline.stage_failure_reason import (
         StageFailureReason,
         reason_from_exception,
     )
+    from pipeline.run_deadline import time_limit_exceptions
 
     try:
         result = run_stage_fn(ctx, stage_name)
+    except time_limit_exceptions():
+        raise
     except Exception as exc:
         # O texto que sai daqui vai a stage_log, traceback e WS (ADR-441 D2).
         failure = describe_failure(exc)
@@ -677,9 +684,14 @@ def _mark_running_stage_log_failed(db, run_id: str, stage: str, exc, now) -> Non
 
 def _apply_task_crash_to_run(run, exc, now, db) -> None:
     """Aplica BUG-003 + preserva ``failed_at_stage``/stage_log para retomada via UI."""
+    from pipeline.run_deadline import is_time_limit
+
     if run.current_stage and not run.failed_at_stage:
         _mark_running_stage_log_failed(db, run.id, run.current_stage, exc, now)
         run.failed_at_stage = run.current_stage
+    # Último recurso da ADR-446: o sinal escapou do loop (estourou entre stages).
+    if is_time_limit(exc):
+        run.failure_reason = TIME_LIMIT_EXCEEDED
     run.status = PipelineRunStatus.failed
     run.completed_at = now
     run.current_stage = None
@@ -711,6 +723,17 @@ def _warn_on_failure_did_not_mark(run_id: str, exc: Exception) -> None:
     )
 
 
+# O billiard conta o soft limit a partir do ACK do job, um instante antes desta
+# chamada, e só confere a cada 1s. A carência faz o relógio vencer DEPOIS do sinal:
+# vencendo antes, o run pararia e o post-processing abriria com o sinal pendente.
+def _run_deadline_for(task) -> RunDeadline:
+    """Prazo do run a partir do soft limit efetivo da task — override por chamada vence o default."""
+    from pipeline.run_deadline import SIGNAL_GRACE_S, RunDeadline
+
+    _, soft_limit = getattr(task.request, "timelimit", None) or (None, None)
+    return RunDeadline.starting_now(soft_limit or task.soft_time_limit, grace_s=SIGNAL_GRACE_S)
+
+
 def _bootstrap_pipeline_sys_path() -> None:
     """Garante que `pipeline.*` seja importável no worker Celery."""
     import sys
@@ -730,6 +753,7 @@ def _setup_run_context(
     skip_llm: bool = False,
     base_run_id: str | None = None,
     base_run_fallback_stages: list[str] | None = None,
+    run_deadline: RunDeadline | None = None,
 ):
     """Cria WorkspaceContext hidratado (delegado a ``run_context_factory``).
 
@@ -753,6 +777,7 @@ def _setup_run_context(
         skip_llm=skip_llm,
         base_run_id=base_run_id,
         base_run_fallback_stages=base_run_fallback_stages or (),
+        run_deadline=run_deadline,
     )
     ctx = hydrated.ctx
     ctx.stage_duration_estimates = _load_stage_duration_estimates(ws_id)
@@ -1411,6 +1436,160 @@ def _log_artifact_commit_failure(moment: str, stage_name: str, exc: Exception) -
     )
 
 
+# ADR-446 — parada por prazo do run. O texto vai ao `errors` do stage_log, que o
+# `FailedRunCard` mostra; o motivo do run vai a `failure_reason`, com copy no frontend.
+# "Prazo" fica fora da copy: a palavra já tem três sentidos no produto (IF, dívida, tarefa).
+_TIME_LIMIT_CUT = "Etapa interrompida: o processamento atingiu o tempo limite."
+_TIME_LIMIT_NOT_STARTED = "Etapa não iniciada: o processamento já tinha atingido o tempo limite."
+
+
+# Estado de UMA invocação do loop, nunca do módulo (ADR-111). A primeira observação
+# fixa onde e como o prazo foi visto; `caused_failure` só liga se ele produziu a
+# PRIMEIRA falha do run — falha anterior por outra causa é o motivo que vale.
+@dataclass
+class _RunTimeLimit:
+    """O que o loop viu do prazo do run; fechado uma vez, ao fim do loop (ADR-446)."""
+
+    run_id: str
+    deadline: "RunDeadline"
+    detection: str | None = None
+    stage: str | None = None
+    caused_failure: bool = False
+
+    def observe(self, stage: str, detection: str, *, failed: bool, had_failure: bool) -> None:
+        if self.detection is None:
+            self.detection, self.stage = detection, stage
+        self.caused_failure = self.caused_failure or (failed and not had_failure)
+
+    def summary(self, *, not_started: bool) -> dict:
+        elapsed = self.deadline.elapsed_s()
+        return {
+            "reason_class": "timeout",
+            "error_type": "RunTimeLimit",
+            "time_limit": {
+                "detection": self.detection,
+                "not_started": not_started,
+                "elapsed_s": None if elapsed is None else round(elapsed, 1),
+                "budget_s": self.deadline.budget_s,
+            },
+        }
+
+
+def _time_limit_detection(exc: BaseException) -> str:
+    """``signal``: o billiard o entregou intacto. ``deadline_llm``: a guarda do LLM recusou."""
+    from pipeline.run_deadline import RunTimeLimitExceededError
+
+    return "deadline_llm" if isinstance(exc, RunTimeLimitExceededError) else "signal"
+
+
+def _mark_failed_at_stage(db, run_id: str, stage_name: str, outcome: str) -> None:
+    # ADR-357 §3: campo de falha nunca ao lado de não-entrega degradável.
+    if outcome == "failed":
+        db.get(PipelineRun, run_id).failed_at_stage = stage_name
+
+
+def _record_stage_cut_by_deadline(
+    limit: _RunTimeLimit, stage_name: str, log_id: str, outcome: str, elapsed_ms: int, pct: int
+) -> None:
+    """Fecha o stage_log do stage que o prazo interrompeu, com a disposição da criticidade."""
+    with SyncSessionLocal() as db:
+        _close_cut_stage_log(db.get(PipelineStageLog, log_id), limit, outcome, elapsed_ms)
+        _mark_failed_at_stage(db, limit.run_id, stage_name, outcome)
+        db.commit()
+    publish_stage_failed(limit.run_id, stage_name, _TIME_LIMIT_CUT, pct)
+
+
+def _close_cut_stage_log(log, limit: _RunTimeLimit, outcome: str, elapsed_ms: int) -> None:
+    log.status, log.errors = _STAGE_STATUS_BY_OUTCOME[outcome], _TIME_LIMIT_CUT
+    log.duration_ms, log.completed_at = elapsed_ms, datetime.now(timezone.utc)
+    log.output_summary = limit.summary(not_started=False)
+
+
+def _record_stage_not_started(limit: _RunTimeLimit, stage_name: str, *, had_failure: bool) -> bool:
+    """Stage que o prazo impediu de começar; True se obrigatório."""
+    from pipeline.stage_outcome import resolve_stage_outcome
+
+    outcome = resolve_stage_outcome(stage_name, delivered=False)
+    limit.observe(
+        stage_name, "deadline_boundary", failed=outcome == "failed", had_failure=had_failure
+    )
+    with SyncSessionLocal() as db:
+        db.add(_not_started_stage_log(limit, stage_name, outcome))
+        _mark_failed_at_stage(db, limit.run_id, stage_name, outcome)
+        db.commit()
+    return outcome == "failed"
+
+
+# `duration_ms` fica nulo: o stage não rodou, e o card mostra "0ms" para zero.
+def _not_started_stage_log(limit: _RunTimeLimit, stage_name: str, outcome: str) -> PipelineStageLog:
+    now = datetime.now(timezone.utc)
+    return PipelineStageLog(
+        id=str(uuid.uuid4()),
+        pipeline_run_id=limit.run_id,
+        stage=stage_name,
+        status=_STAGE_STATUS_BY_OUTCOME[outcome],
+        started_at=now,
+        completed_at=now,
+        errors=_TIME_LIMIT_NOT_STARTED,
+        output_summary=limit.summary(not_started=True),
+        executor_revision=settings.executor_revision,
+    )
+
+
+# Até o 1º obrigatório, e não todos: dele em diante o run já falhou, e uma coluna de
+# "Falhou" em etapas que nunca rodaram mentiria. Pelo mesmo motivo, run que JÁ falhou
+# não ganha registro novo. Os degradáveis vão todos: o `PartialRunBanner` diz "o
+# restante está completo" contando os `degraded`.
+def _record_stages_left_by_deadline(
+    limit: _RunTimeLimit, rest: list[str], skips, progress_pct: int, *, had_failure: bool
+) -> bool:
+    """Grava os stages que o prazo deixou sem rodar; devolve o ``has_failure`` do run."""
+    if had_failure:
+        if rest:  # vazio quando o stage cortado era o último
+            limit.observe(rest[0], "deadline_boundary", failed=False, had_failure=True)
+        return True
+    for stage_name in rest:
+        should_skip_llm, should_skip_free = skips(stage_name)
+        if should_skip_llm or should_skip_free:
+            now = datetime.now(timezone.utc)
+            log_id = str(uuid.uuid4())
+            _record_stage_skip(
+                limit.run_id, stage_name, log_id, now, should_skip_free, progress_pct
+            )
+            continue
+        if _record_stage_not_started(limit, stage_name, had_failure=False):
+            return True
+    return False
+
+
+def _close_run_time_limit(limit: _RunTimeLimit, tier: str) -> None:
+    """``failure_reason`` quando o prazo causou a 1ª falha, e o evento ERROR — uma vez por run."""
+    if limit.detection is None:
+        return
+    if limit.caused_failure:
+        with SyncSessionLocal() as db:
+            db.get(PipelineRun, limit.run_id).failure_reason = TIME_LIMIT_EXCEEDED
+            db.commit()
+    _log_run_time_limit(limit, tier)
+
+
+def _log_run_time_limit(limit: _RunTimeLimit, tier: str) -> None:
+    elapsed = limit.deadline.elapsed_s()
+    logger.error(
+        "run_time_limit_exceeded",
+        extra={
+            "event": "mathoms.pipeline.run_time_limit_exceeded",
+            "run_id": limit.run_id,
+            "stage": limit.stage,
+            "detection": limit.detection,
+            "caused_failure": limit.caused_failure,
+            "elapsed_s": None if elapsed is None else round(elapsed, 1),
+            "budget_s": limit.deadline.budget_s,
+            "tier": tier,
+        },
+    )
+
+
 def _execute_stages_loop(
     ctx,
     stages: list[str],
@@ -1423,6 +1602,7 @@ def _execute_stages_loop(
     run_stage_fn,
     base_run_id: str | None = None,
     base_run_fallback_stages: frozenset[str] = frozenset(),
+    run_deadline: RunDeadline | None = None,
 ) -> tuple[bool, bool]:
     """Executa o loop principal de stages.
 
@@ -1436,6 +1616,7 @@ def _execute_stages_loop(
     local mediria só esta invocação, e resume/redelivery partem o run em duas.
     """
     from backend.app.services.pipeline import stage_failure_reason as sfr
+    from pipeline.run_deadline import RunDeadline, time_limit_exceptions
     from pipeline.stage_outcome import (
         commits_stage_transaction,
         resolve_stage_outcome,
@@ -1445,10 +1626,26 @@ def _execute_stages_loop(
     has_failure = False
     paused_for_review = False
     total_stages = len(stages)
+    deadline = run_deadline or RunDeadline()
+    limit = _RunTimeLimit(run_id=run_id, deadline=deadline)
+
+    def skips(stage: str) -> tuple[bool, bool]:
+        is_llm = stage in llm_stages
+        return skip_llm and is_llm, tier == "free" and is_llm and not skip_llm
 
     for stage_idx, stage_name in enumerate(stages):
         if _is_cancelled(run_id):
             publish_run_cancelled(run_id)
+            break
+
+        # ADR-446: depois do prazo, nenhum stage começa — qualquer que seja a
+        # criticidade e o `stop_on_error`. Quem decide é o loop, como no cancel.
+        if deadline.expired():
+            pct = int((stage_idx / total_stages) * 100)
+            rest = stages[stage_idx:]
+            has_failure = _record_stages_left_by_deadline(
+                limit, rest, skips, pct, had_failure=has_failure
+            )
             break
 
         # A37.l12 (EXEC-01): redelivery com stage já concluído neste run →
@@ -1488,13 +1685,46 @@ def _execute_stages_loop(
         ctx.artifact_store = store
 
         start_mono = time.monotonic()
-        result, exc_error, exc_tb, exc_reason = _run_stage_once(ctx, stage_name, run_stage_fn)
+        try:
+            result, exc_error, exc_tb, exc_reason = _run_stage_once(ctx, stage_name, run_stage_fn)
+        except time_limit_exceptions() as exc:
+            # Quem viu o sinal dispara o prazo: as threads do pool e a fronteira
+            # passam a enxergá-lo sem esperar a carência do relógio (ADR-446).
+            deadline.trip()
+            _rollback_and_close_artifact_session(stage_session, ctx)
+            outcome = resolve_stage_outcome(stage_name, delivered=False)
+            limit.observe(
+                stage_name,
+                _time_limit_detection(exc),
+                failed=outcome == "failed",
+                had_failure=has_failure,
+            )
+            elapsed_ms = int((time.monotonic() - start_mono) * 1000)
+            _record_stage_cut_by_deadline(
+                limit, stage_name, log_id, outcome, elapsed_ms, progress_pct
+            )
+            if outcome == "failed":
+                has_failure = True
+                break
+            rest = stages[stage_idx + 1 :]
+            has_failure = _record_stages_left_by_deadline(
+                limit, rest, skips, progress_pct, had_failure=has_failure
+            )
+            break
         elapsed_ms = int((time.monotonic() - start_mono) * 1000)
         completed_pct = int(((stage_idx + 1) / total_stages) * 100)
 
         # Exceção cruzou o executor (ADR-443 — tentativa única): rollback + close.
         if result is None:
             outcome = resolve_stage_outcome(stage_name, delivered=False)
+            if deadline.expired():
+                exc_reason = sfr.StageFailureReason.timeout.value
+                limit.observe(
+                    stage_name,
+                    "deadline_after_stage",
+                    failed=outcome == "failed",
+                    had_failure=has_failure,
+                )
             _rollback_and_close_artifact_session(stage_session, ctx)
             _record_stage_exception(
                 run_id,
@@ -1541,6 +1771,16 @@ def _execute_stages_loop(
             if outcome.delivered
             else sfr.reason_from_stage_detail(result.detail).value
         )
+        # O stage engoliu o sinal (no laço de retry do LLM ou num `except` próprio)
+        # e voltou sem entregar depois do prazo: a causa é o prazo, não o detalhe.
+        if not outcome.delivered and deadline.expired():
+            reason = sfr.StageFailureReason.timeout.value
+            limit.observe(
+                stage_name,
+                "deadline_after_stage",
+                failed=outcome == "failed",
+                had_failure=has_failure,
+            )
 
         if result.success:
             try:
@@ -1595,6 +1835,7 @@ def _execute_stages_loop(
             if stop_on_error:
                 break
 
+    _close_run_time_limit(limit, tier)
     return has_failure, paused_for_review
 
 
@@ -1912,6 +2153,7 @@ def run_pipeline_task(
     # `_execute_stages_loop` keeps its shape; we derive llm_stages from
     # STAGE_REGISTRY and pass a closure binding workspace_id.
     _bootstrap_pipeline_sys_path()
+    run_deadline = _run_deadline_for(self)
     from backend.app.services.pipeline.pipeline_client import get_pipeline_client
     from pipeline.stage_spec import STAGE_REGISTRY
 
@@ -1934,6 +2176,7 @@ def run_pipeline_task(
         skip_llm,
         base_run_id=base_run_id,
         base_run_fallback_stages=base_run_fallback_stages,
+        run_deadline=run_deadline,
     )
     logger.info(
         "pipeline_start run_id=%s workspace_id=%s incremental=%s "
@@ -1986,6 +2229,7 @@ def run_pipeline_task(
             # executor HTTP — store do loop e executor remoto não divergem.
             base_run_id=ctx.base_run_id,
             base_run_fallback_stages=ctx.base_run_fallback_stages,
+            run_deadline=run_deadline,
         )
 
         _finalize_pipeline_outcome(run_id, ws_id, tenant_root, has_failure, paused_for_review)

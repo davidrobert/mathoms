@@ -2516,11 +2516,23 @@
       },
       "DashboardAlert": {
         "properties": {
+          "kind": {
+            "enum": [
+              "ponto_urgente",
+              "aviso"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
           "message": {
             "title": "Message",
             "type": "string"
           },
           "severity": {
+            "enum": [
+              "critical",
+              "warning"
+            ],
             "title": "Severity",
             "type": "string"
           },
@@ -2530,6 +2542,7 @@
           }
         },
         "required": [
+          "kind",
           "severity",
           "title",
           "message"

@@ -87,9 +87,10 @@ E5_FIELDS_FORA_DO_PARECER: dict[str, str] = {
     "$.patrimonio.cobertura_classificacao_imovel.residencia_status": (
         "eco do cadastro ([[ADR-215]]); o veredito da residência já carrega o que o conselho usa"
     ),
-    # [[ADR-444]] D8 (expand→contract): o escalar entra no contrato ANTES do produtor, que só
-    # o emite no flip — e é no flip, com o bump do manifest, que ele passa a ser projetado.
+    # [[ADR-444]] D8 (expand→contract): o escalar entrou no contrato ANTES do produtor. O flip
+    # (#2233) não o projetou: a projeção vai no bump único do manifest, na [[A40.l8]]
+    # (ADR-444 §Correção 2026-10-09).
     "$.investimentos.total_imoveis_uso_nao_apurado": (
-        "declarado antes do produtor (expand); o flip da ADR-444 o projeta e o tira daqui"
+        "emitido desde o flip da ADR-444; a A40.l8 o projeta no bump do manifest e o tira daqui"
     ),
 }
