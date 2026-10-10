@@ -21,6 +21,7 @@ from fastapi import Depends, HTTPException, Request, status
 
 from backend.app.core.config import settings
 from backend.app.core.logging import get_logger
+from backend.app.services.security.client_ip import client_ip
 
 logger = logging.getLogger(__name__)
 _rl_metrics = get_logger("rate_limit")
@@ -89,11 +90,8 @@ def check_rate_limit(policy: RateLimitPolicy, key: str) -> tuple[bool, int]:
 
 
 def client_ip_key(request: Request) -> str:
-    """IP do cliente respeitando X-Forwarded-For (proxy Coolify/Traefik)."""
-    fwd = request.headers.get("x-forwarded-for")
-    if fwd:
-        return fwd.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+    """IP pelo hop do proxy confiável, não pelo XFF cru — fronteira em ``client_ip``."""
+    return client_ip(request) or "unknown"
 
 
 def workspace_key(request: Request) -> str:

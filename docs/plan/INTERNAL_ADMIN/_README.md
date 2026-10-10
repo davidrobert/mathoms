@@ -109,6 +109,7 @@ A **primeira etapa executável** é **local** (máquina do operador com repo, `D
 - **Structured logging** + correlação request/Celery (**7C.5**).
 - **Audit log** para writes sensíveis (**7B.5** ✅ entregue em A31.l1, [[ADR-309]]) — persistido em tabela; antes de expor o console na rede, reforçar política e testes (**7F.4**).
 - Decisão documentada: **sem impersonation** do cliente ou fluxo “break glass” com TTL, notificação e ADR (**7F.1** no backlog).
+- **Débito (2026-10-09):** a imagem `frontend-ops` grava o destino do `/admin/*` no `next build` (build arg `INTERNAL_OPS_API_BASE` → routes-manifest) — uma imagem por ambiente quebra o build-once-promote; antes de F7F-Remote, o destino tem de virar config de runtime.
 
 **Saída:** operação remota sobrevive com documentação + logs; console web pode ainda não existir.
 

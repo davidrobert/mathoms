@@ -21,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from scripts.e2.common import DATA_DIR, OUTPUT_DIR, log
+from scripts.e2.common import log
 from scripts.e2.registry import (
     NON_STATEMENT_TYPES,
     is_investment_type,
@@ -63,14 +63,16 @@ def _is_investment_file(filename: str) -> bool:
     return is_investment_type(filename)
 
 
-def find_all_files(extratos_only: bool = False, faturas_only: bool = False) -> List[Path]:
-    """Find all processable financial files in data/financial_statements/."""
-    if not DATA_DIR.is_dir():
-        log(LOG_UNIFIED, "WARN", f"Diretório não encontrado: {DATA_DIR}")
+def find_all_files(
+    statements_dir: Path, extratos_only: bool = False, faturas_only: bool = False
+) -> List[Path]:
+    """Find all processable financial files in the run tenant's data/financial_statements/."""
+    if not statements_dir.is_dir():
+        log(LOG_UNIFIED, "WARN", f"Diretório não encontrado: {statements_dir}")
         return []
 
     files = []
-    for f in sorted(DATA_DIR.iterdir()):
+    for f in sorted(statements_dir.iterdir()):
         if not f.is_file():
             continue
         if not any(f.name.endswith(ext) for ext in VALID_EXTENSIONS):
@@ -376,6 +378,7 @@ def _write_extracted(store, doc: _ExtractedDocument, stats: dict) -> None:
 def run_with_store(
     *,
     store,
+    statements_dir: Path,
     target_stage: str | None = None,
     extratos_only: bool = False,
     faturas_only: bool = False,
@@ -390,6 +393,8 @@ def run_with_store(
 
     Args:
         store: ``ArtifactStore`` alvo (Disk ou DB).
+        statements_dir: ``data/financial_statements`` do tenant DESTE run. Nunca global
+            de módulo: o 1º import congelava o tenant do 1º run do processo.
         target_stage: quando não-None, todos os outputs vão para este stage
             (``"extract_statements"``, ``"extract_invoices"``, ``"extract_with_llm"``). Quando ``None``,
             o stage é decidido por arquivo (``_target_stage_for_file``).
@@ -406,7 +411,7 @@ def run_with_store(
     stage é a unidade de trabalho (ADR-256), e documento só conta como
     processado depois do write — um write recusado em strict nunca é progresso.
     """
-    files = find_all_files(extratos_only=extratos_only, faturas_only=faturas_only)
+    files = find_all_files(statements_dir, extratos_only=extratos_only, faturas_only=faturas_only)
 
     if incremental_allowed_stems is not None:
         files = [f for f in files if _artifact_key_for_file(f) in incremental_allowed_stems]

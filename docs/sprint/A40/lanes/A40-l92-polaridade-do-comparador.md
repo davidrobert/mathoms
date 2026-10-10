@@ -260,7 +260,10 @@ distinguir mínimo de alvo na mesma linha.
   e `sumario-executivo` usam. Pré-existente; não tocado. **Rota:** sugerida ao dono como
   tarefa separada em 2026-10-08, **sem lane**, junto com a recalibração da folga de 2,5% do
   helper. A sonda desta lane mediu essa folga: a regressão da barra (1.135 px) passou em
-  `S_parecer-parcial`.
+  `S_parecer-parcial`. ✅ **Fechado no #2251:** o helper mascara os FABs e a folga virou
+  `0.00003`, medida (ruído 0 px; `"XX"` no h2 = 262 px); a barra agora reprova em
+  `S_parecer-parcial`. As 26 baselines de seção foram regeneradas: 15 com deriva
+  atribuída, 16 com as caixas dos FABs.
 - **O prompt do parecer usa `≥` nas fronteiras de severidade da concentração** (*"≥50% é
   ALTA/atenção; crítica só ≥75%"*, `config/prompts/parecer_planejador.yaml`), e o código usa
   `>` estrito nas duas: o alerta em `concentracao_pct > 50` (`real_estate_metrics_aggregator`)

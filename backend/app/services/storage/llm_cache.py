@@ -4,7 +4,8 @@
 # versionamento; cache LLM é otimização efêmera com TTL).
 # Stateless rigoroso (ADR-111): backend padrão é Redis. Se Redis estiver
 # indisponível, NoOpLLMCache degrada graciosamente (cache miss em toda
-# chamada — generator cai no LLM ou no fallback determinístico).
+# chamada — generator cai no LLM). A chave das narrativas de seção é composta
+# só em `section_summary_generator._cache_key`.
 # InMemoryLLMCache existe APENAS para tests; nunca em prod.
 
 from __future__ import annotations
@@ -114,12 +115,3 @@ def get_default_llm_cache() -> LLMCacheBackend:
     if client is None:
         return NoOpLLMCache()
     return RedisLLMCache(client)
-
-
-def build_section_summary_cache_key(
-    workspace_id: int | str,
-    snapshot_hash: str,
-    section_id: str,
-) -> str:
-    """Compõe a chave canônica do cache para section summaries (ADR-144 §2)."""
-    return f"mathoms:llm:section_summary:{workspace_id}:{snapshot_hash}:{section_id}"

@@ -5,11 +5,11 @@
 
 Volta para [`00-INDEX`](../00-INDEX.md).
 
-438 ADRs (ADR-001 a ADR-449) em [`docs/adr/`](../../adr/).
+439 ADRs (ADR-001 a ADR-449) em [`docs/adr/`](../../adr/).
 
 ## Sumário por status
 
-- **Decidido**: 376
+- **Decidido**: 377
 - **Proposto**: 57
 - **Roadmap**: 5
 
@@ -588,7 +588,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 
 ## pipeline
 
-### Decidido (87)
+### Decidido (88)
 
 - [[ADR-161]] — Regras canônicas de Suggestion v2 (Cerbasi/AUVP/Perini completos) · phase Onda 8
 - [[ADR-193]] — Taxonomia canônica de classes de ativo no E5 (10 buckets)
@@ -676,6 +676,7 @@ Volta para [`00-INDEX`](../00-INDEX.md).
 - [[ADR-434]] — Uma convenção de sinal por termo no eixo-valor E3→E4, e a ponte que cruza o número publicado · phase A42
 - [[ADR-439]] — Balde de imóvel sem classificação apurada sai `null` com veredito, e zero só com evidência de zero · phase A40.l113
 - [[ADR-444]] — Imóvel de uso não apurado entra na carteira com valor e sem peso, e nenhuma prescrição recai sobre o que pode ser a residência · phase A40.l122
+- [[ADR-446]] — Soft time limit encerra o run — nenhum stage começa depois do prazo
 - [[ADR-447]] — A classe da falha sai do objeto vivo e atravessa o executor no detail do stage
 
 ### Proposto (19)

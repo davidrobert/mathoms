@@ -34,6 +34,7 @@ from backend.app.schemas.auth import (
     TokenResponse,
     UserResponse,
 )
+from backend.app.services.security.client_ip import client_ip
 from backend.app.services.security.rate_limit import client_ip_key, rate_limited
 from backend.app.services.security.refresh_rate_limit import check_refresh_rate
 from backend.app.services.security.register_rate_limit import check_register_rate
@@ -41,14 +42,6 @@ from backend.app.services.security.register_rate_limit import check_register_rat
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 _REFRESH_COOKIE_PATH_SUFFIX = "/auth"  # path real = API_PREFIX + sufixo (emenda ADR-170)
-
-
-def _client_ip(request: Request) -> str | None:
-    """Extrai IP da request, respeitando X-Forwarded-For (proxy do Coolify/Traefik)."""
-    fwd = request.headers.get("x-forwarded-for")
-    if fwd:
-        return fwd.split(",")[0].strip()
-    return request.client.host if request.client else None
 
 
 def _refresh_cookie_path() -> str:
@@ -92,7 +85,7 @@ async def register(
     response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
-    allowed, retry_after = check_register_rate(_client_ip(request))
+    allowed, retry_after = check_register_rate(client_ip(request))
     if not allowed:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -149,7 +142,7 @@ def _validate_refresh_request(request: Request) -> str:
 def _enforce_refresh_rate(request: Request, cookie_value: str) -> None:
     parsed = parse_refresh_cookie(cookie_value)
     family_id = parsed[0] if parsed else None
-    allowed, retry_after = check_refresh_rate(_client_ip(request), family_id)
+    allowed, retry_after = check_refresh_rate(client_ip(request), family_id)
     if not allowed:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
