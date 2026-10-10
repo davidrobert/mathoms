@@ -25,6 +25,10 @@ runbook define o gate de promoção de cada schema, o procedimento e o rollback.
 > determinístico (`extract_invoices`/`extract_statements`) o abort é capturado por
 > arquivo, o arquivo já foi contado como processado, e o stage termina `completed` sem o
 > extrato: perda silenciosa, não abort. Bloqueador do flip de `e2_extract` no §1.1.
+>
+> **Resolvido em 2026-10-09 (PR #2247).** O E2 conta o arquivo só depois do write, e a
+> exceção do store propaga: o abort derruba o stage como `output_invalid`, como nos
+> demais stages da 1ª linha do §8.1.
 
 ## 1. Pré-requisitos (gate antes de flipar)
 
@@ -43,6 +47,11 @@ Todos verificáveis; sem exceção informal.
   `erros_validacao == 0 or processados > 0` (`pipeline/stages/e2.py`). Um abort strict é
   engolido e o stage termina `completed` sem o extrato. O flip espera a contagem passar a
   depender do write.
+  ✅ **Resolvido em 2026-10-09 (PR #2247)** — a contagem depende do write e a exceção do
+  store propaga; gate: `tests/test_e2_persist_failure_stage_outcome.py`. **O flip de
+  `e2_extract` segue bloqueado**, agora pelo §1.2 (o stub de escalação não tem
+  `banco`/`moeda`: com o abort propagando, todo run com documento não reconhecido
+  falharia no E2) e pelo §1.3 (baseline de 7 dias zero-WARN).
 - [ ] **Só para `e2_llm_artifact.schema.json` e `informe_aluguel.schema.json`.** O abort
   sai como `reason_class = unknown`: os stages capturam por documento (tabela do §8.1).
   Retome o §Deferimento da [[ADR-447]] antes do flip, ou registre na linha do §7 que a
@@ -109,6 +118,11 @@ resolvidos **ou aceitos por escrito** na linha do §7:
 > (`processados == 0`). Em lote misto o write do stub aborta, o arquivo vira
 > `erros_validacao`, `processados > 0` mantém o `success` do E2, e o documento nunca
 > chega ao fallback LLM — perda silenciosa, bloqueada no §1.1.
+>
+> **Resolvido em 2026-10-09 (PR #2247).** O write do stub que falha propaga: o run morre
+> em E2 também em lote misto. Isso **mantém** esta pré-condição reaberta em vez de
+> aliviá-la — com `e2_extract` em strict e o stub sem `banco`/`moeda`, todo run com
+> documento não reconhecido falharia no E2.
 
 ### 1.3. Baseline de 7 dias zero-WARN para o schema alvo
 
@@ -295,7 +309,7 @@ por `failure_class` (a entrada gravada por quem capturou) nem pela coluna
 | --- | --- | --- |
 | `e1_members`, `e15_baseline_extract`, `baseline_patrimonial`, `e16_irpf_full`, `informe_base`, `comprovante_base`, `e3_reconciled`, `e4_*`, `e5_analysis` | E1, E1.5, E1.5c, E1.6, informes anuais, comprovantes, E3, E4, E5 — e `generate_narratives`, que grava na chave do E5 | `failed` (`degraded` no `generate_narratives`) com `reason_class = output_invalid` |
 | `e2_llm_artifact`, `informe_aluguel` | `extract_with_llm`, `extract_informe_aluguel` | `failed` com `reason_class = unknown`: o stage captura por documento ([[ADR-447]] §Deferimento) — aqui filtre `errors` pela mensagem do raise |
-| `e2_extract` | `extract_invoices`, `extract_statements` | **nada**: o abort é engolido e o stage termina `completed` sem o extrato — o §1.1 bloqueia este flip |
+| `e2_extract` | `extract_invoices`, `extract_statements` | `failed` com `reason_class = output_invalid` desde o PR #2247 (2026-10-09). Antes, **nada**: o abort era engolido e o stage terminava `completed` sem o extrato |
 
 Runs anteriores ao deploy da [[ADR-447]] gravaram `unknown` para todo abort, antes
 e depois de 2026-08-24: triagem retroativa é pela mensagem em `errors`.

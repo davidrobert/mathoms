@@ -91,6 +91,9 @@ def build_hydrated_request_context(req):
             incremental=req.incremental,
             incremental_doc_paths=list(req.incremental_doc_paths),
             skip_llm=req.skip_llm,
+            # ADR-291: ctx e store pinados juntos — paridade com o ctx do Celery.
+            base_run_id=req.base_run_id,
+            base_run_fallback_stages=req.base_run_fallback_stages,
             materialize_tarefas=True,
         )
     except Exception as exc:

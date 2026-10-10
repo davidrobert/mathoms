@@ -1148,6 +1148,7 @@ O dicionário completo permanece em `StageResult.detail` para a UI, logs e persi
 ### In-transit
 - HTTPS via Traefik (prod) — Let's Encrypt auto-SSL
 - CORS restritivo. JWT access tokens (15min prod / 24h dev)
+- IP do cliente = hop que o proxy confiável acrescentou ao `X-Forwarded-For`, nunca o mais à esquerda ([[ADR-232]] §Emenda 2026-10-09 · RUNBOOK §6.1)
 - `User.token_version` invalida tokens stale ao remover membro
 
 ### Multi-tenant isolation

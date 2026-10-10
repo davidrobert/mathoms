@@ -12,9 +12,9 @@ import { ReportShell } from "@/components/report/ReportShell";
 import type { UseReportDataState } from "@/hooks/useReportData";
 import type { ReportAnalysisData } from "@/lib/api";
 
-vi.mock("@/lib/WorkspaceProvider", () => ({
-  WorkspaceProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
-  useWorkspace: () => ({
+vi.mock("@/lib/WorkspaceProvider", () => {
+  // Referência estável, como o contexto real: ver o mock global em tests/setup.ts.
+  const value = {
     workspace: {
       id: "ws-test",
       name: "Workspace",
@@ -26,8 +26,14 @@ vi.mock("@/lib/WorkspaceProvider", () => ({
     isLoading: false,
     error: null,
     refresh: vi.fn(),
-  }),
-}));
+  };
+  return {
+    WorkspaceProvider: ({ children }: { children: ReactNode }) => (
+      <>{children}</>
+    ),
+    useWorkspace: () => value,
+  };
+});
 
 // F3.2: ReportModeProvider uses next/navigation hooks — mock them in test env
 vi.mock("next/navigation", () => ({
@@ -54,7 +60,7 @@ describe("ReportShell", () => {
   // Estes testes medem o **primeiro paint** do shell: capa, ToC, header,
   // badge, spinner. Todas as asserções são síncronas — rodam antes de
   // qualquer fetch de seção resolver. Sem estes handlers, as 5 requests das
-  // seções filhas caíam no `onUnhandledRequest: "error"` e rejeitavam contra
+  // seções filhas caíam no `onUnhandledFrame: "error"` e rejeitavam contra
   // uma árvore já assertada: ruído no log, zero sinal no teste.
   beforeEach(() => {
     server.use(...reportSectionHandlers("ws-test"));
