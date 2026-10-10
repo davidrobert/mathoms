@@ -25,7 +25,7 @@ beforeEach(() => {
   replaceMock.mockClear();
   // A página monta o filtro por titular (members) e o mapa de overrides
   // resolvidos; nenhum teste daqui declara membro ou override. Sem estes
-  // handlers as duas requests rejeitavam pelo `onUnhandledRequest: "error"`,
+  // handlers as duas requests rejeitavam pelo `onUnhandledFrame: "error"`,
   // e a UI media o próprio branch de falha em vez do estado vazio.
   server.use(
     http.get("/api/v1/workspaces/:workspaceId/config/members", () =>

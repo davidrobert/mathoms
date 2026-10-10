@@ -333,28 +333,33 @@ import warnings as _warnings  # noqa: E402
 from backend.tests import _app_routes as _routes_diag  # noqa: E402
 from backend.tests import factories  # noqa: E402,F401
 
-_WS_BASELINE: dict[str, int] = {}
+_WS_BASELINE: dict[str, set[tuple[str, str]]] = {}
 _POLLUTER_REPORTED: dict[str, bool] = {}
 
 
 def pytest_sessionstart(session):  # noqa: ARG001
     from backend.app.main import app
 
-    _routes_diag.ROUTES_SNAPSHOT[:] = list(app.routes)
-    _WS_BASELINE["n"] = _routes_diag._ws_route_count(_routes_diag.ROUTES_SNAPSHOT)
+    _routes_diag.ROUTES_SNAPSHOT[:] = _routes_diag.iter_effective_routes(app.routes)
+    baseline = _routes_diag.workspace_operations(_routes_diag.ROUTES_SNAPSHOT)
+    # Baseline vazia desliga o detector em silêncio (fastapi 0.137: árvore de rotas).
+    assert baseline, "ROUTES_SNAPSHOT sem rota de workspace — o detector de poluição ficaria cego"
+    _WS_BASELINE["ops"] = baseline
 
 
 def pytest_runtest_teardown(item):
     """Nomeia o 1º teste após o qual rotas de workspace somem do app vivo (A26)."""
-    if _POLLUTER_REPORTED.get("done") or "n" not in _WS_BASELINE:
+    if _POLLUTER_REPORTED.get("done") or "ops" not in _WS_BASELINE:
         return
     from backend.app.main import app
 
-    now = _routes_diag._ws_route_count(list(app.routes))
-    if now < _WS_BASELINE["n"]:
+    now = _routes_diag.workspace_operations(_routes_diag.iter_effective_routes(app.routes))
+    missing = _WS_BASELINE["ops"] - now
+    if missing:
         _POLLUTER_REPORTED["done"] = True
         _warnings.warn(
-            f"ROUTE_POLLUTION: workspace GET routes {_WS_BASELINE['n']}→{now} "
-            f"após {item.nodeid} (worker={os.environ.get('PYTEST_XDIST_WORKER', '?')})",
+            f"ROUTE_POLLUTION: {len(missing)} rota(s) de workspace sumiram "
+            f"(ex.: {sorted(missing)[:3]}) após {item.nodeid} "
+            f"(worker={os.environ.get('PYTEST_XDIST_WORKER', '?')})",
             stacklevel=2,
         )

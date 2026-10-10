@@ -15,6 +15,7 @@ from pipeline.domain.services.asset_classifier import (
 )
 from pipeline.domain.services.imovel_na_carteira import (
     CLASSES_IMOVEL_FISICO,
+    CLASSES_SEM_PESO,
     classe_do_imovel_na_carteira,
 )
 from pipeline.domain.services.patrimonio_types import imovel_valor
@@ -34,7 +35,7 @@ def _build_tabela(
 ) -> tuple["ClasseAtivo", ...]:
     out: list[ClasseAtivo] = []
     for cat, v in sorted(classes.items(), key=lambda x: x[1], reverse=True):
-        if v > 0:
+        if v > 0 and cat not in CLASSES_SEM_PESO:
             pct = (v / denominador_investido) * 100 if denominador_investido > 0 else 0.0
             out.append(
                 ClasseAtivo(
@@ -46,7 +47,17 @@ def _build_tabela(
                     ),
                 )
             )
-    return tuple(out)
+    return tuple(out) + _linhas_sem_peso(classes)
+
+
+# [[ADR-444]] D3: com valor e SEM peso, por último — percentual sobre base que não a contém
+# seria número sem leitor correto.
+def _linhas_sem_peso(classes: dict[str, float]) -> tuple["ClasseAtivo", ...]:
+    return tuple(
+        ClasseAtivo(categoria=cat, valor=v, pct=None, pct_carteira_financeira=None)
+        for cat, v in classes.items()
+        if v > 0 and cat in CLASSES_SEM_PESO
+    )
 
 
 def _pct_carteira_financeira(
@@ -114,7 +125,8 @@ class ClasseAtivo:
     categoria: str
     valor: float
     # Base "total investido" (financeiro + imóveis de investimento) — ADR-209 absoluto.
-    pct: float
+    # `None` só na linha sem peso ([[ADR-444]] D3).
+    pct: float | None
     # Base "carteira financeira" (total - imóveis físicos); None fora da base (A37.l9).
     pct_carteira_financeira: float | None = None
 
@@ -122,7 +134,7 @@ class ClasseAtivo:
         return {
             "categoria": self.categoria,
             "valor": round(self.valor, 2),
-            "pct": round(self.pct, 2),
+            "pct": round(self.pct, 2) if self.pct is not None else None,
             "pct_carteira_financeira": (
                 round(self.pct_carteira_financeira, 2)
                 if self.pct_carteira_financeira is not None
@@ -139,6 +151,8 @@ class InvestimentosClassesAnalysis:
     # Decimal em memória (ADR-090); wire legado emite JSON number (float).
     total_financeiro: Decimal = Decimal("0")
     total_imoveis_investimento: Decimal = Decimal("0")
+    # Fora de `total` ([[ADR-444]] D3): total + este = Σ tabela.
+    total_imoveis_uso_nao_apurado: Decimal = Decimal("0")
     warnings: tuple[OutrosExcessivoWarning, ...] = ()
     # Soma dos investimentos cuja classe NENHUM degrau decidiu ([[ADR-400]]).
     nao_classificado_brl: Decimal = Decimal("0")
@@ -161,11 +175,19 @@ class InvestimentosClassesAnalysis:
             "total": round(self.total, 2),
             "total_financeiro": float(round(self.total_financeiro, 2)),
             "total_imoveis_investimento": float(round(self.total_imoveis_investimento, 2)),
+            **self._sem_peso_dict(),
             "nao_classificado_pct": round(self.nao_classificado_pct, 2),
             "nao_classificado_itens": [
                 i.to_dict(self.total_financeiro) for i in self.nao_classificado_itens
             ],
         }
+
+    # Ausente sem a linha: zero viraria "R$ 0,00" em todo parecer ([[ADR-444]] D3).
+    def _sem_peso_dict(self) -> dict:
+        if self.total_imoveis_uso_nao_apurado <= 0:
+            return {}
+        valor = float(round(self.total_imoveis_uso_nao_apurado, 2))
+        return {"total_imoveis_uso_nao_apurado": valor}
 
 
 # =============================================================================
@@ -189,17 +211,21 @@ class InvestimentosClassesAnalyzer:
     def __init__(self, config: InvestimentosClassesConfig | None = None) -> None:
         self._config = config or InvestimentosClassesConfig.from_configs()
 
-    def analyze(self, bens_por_membro: list[dict[str, Any]]) -> InvestimentosClassesAnalysis:
+    def analyze(
+        self, bens_por_membro: list[dict[str, Any]], *, residencia_no_desconhecido: bool = False
+    ) -> InvestimentosClassesAnalysis:
         classes = {cat: 0.0 for cat in self.CATEGORIES}
-        itens = self._acumular(bens_por_membro or [], classes)
-        total = sum(classes.values())
-        total_imoveis = sum(classes.get(c, 0.0) for c in CLASSES_IMOVEL_FISICO)
+        itens = self._acumular(bens_por_membro or [], classes, residencia_no_desconhecido)
+        total = sum(v for cat, v in classes.items() if cat not in CLASSES_SEM_PESO)
+        total_imoveis = sum(classes.get(c, 0.0) for c in CLASSES_IMOVEL_FISICO - CLASSES_SEM_PESO)
         total_financeiro = total - total_imoveis
+        sem_peso = sum(classes.get(c, 0.0) for c in CLASSES_SEM_PESO)
         return InvestimentosClassesAnalysis(
             tabela_classes=_build_tabela(classes, total, total_financeiro),
             total=total,
             total_financeiro=Decimal(str(total_financeiro)),
             total_imoveis_investimento=Decimal(str(total_imoveis)),
+            total_imoveis_uso_nao_apurado=Decimal(str(sem_peso)),
             warnings=self._build_warnings(classes, total),
             nao_classificado_brl=sum((i.valor for i in itens), Decimal("0")),
             nao_classificado_itens=tuple(itens),
@@ -208,7 +234,7 @@ class InvestimentosClassesAnalyzer:
     # -- Helpers internos --
 
     def _acumular(
-        self, bens_por_membro: list, classes: dict[str, float]
+        self, bens_por_membro: list, classes: dict[str, float], residencia_no_desconhecido: bool
     ) -> list[PosicaoNaoClassificada]:
         """Soma todos os membros nos baldes; devolve as posições sem classe."""
         itens: list[PosicaoNaoClassificada] = []
@@ -218,7 +244,7 @@ class InvestimentosClassesAnalyzer:
             itens.extend(self._classify_investments(bens, classes))
             self._add_top_level_cripto(bens, classes)
             self._add_contas_bancarias_scalar(bens, classes)
-            self._add_imoveis(bens, classes)
+            self._add_imoveis(bens, classes, residencia_no_desconhecido)
         return itens
 
     def _classify_investments(
@@ -251,14 +277,18 @@ class InvestimentosClassesAnalyzer:
         if isinstance(contas, (int, float)):
             classes["Caixa"] += safe_float(contas)
 
-    def _add_imoveis(self, bens: dict[str, Any], classes: dict[str, float]) -> None:
+    def _add_imoveis(
+        self, bens: dict[str, Any], classes: dict[str, float], residencia_no_desconhecido: bool
+    ) -> None:
         overrides = self._config.property_classification_overrides
         for imovel in bens.get("imoveis", []) or []:
             if not isinstance(imovel, dict):
                 continue
             # O mesmo valor que o patrimônio soma ([[ADR-431]]): não apurado fica de fora.
             valor = imovel_valor(imovel)
-            classe = classe_do_imovel_na_carteira(imovel, overrides)
+            classe = classe_do_imovel_na_carteira(
+                imovel, overrides, residencia_no_desconhecido=residencia_no_desconhecido
+            )
             if valor <= 0 or classe is None:
                 continue
             classes[classe] = classes.get(classe, 0.0) + valor
