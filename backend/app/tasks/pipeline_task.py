@@ -728,6 +728,8 @@ def _setup_run_context(
     incremental: bool,
     incremental_doc_paths: list[str] | None,
     skip_llm: bool = False,
+    base_run_id: str | None = None,
+    base_run_fallback_stages: list[str] | None = None,
 ):
     """Cria WorkspaceContext hidratado (delegado a ``run_context_factory``).
 
@@ -749,6 +751,8 @@ def _setup_run_context(
         incremental=incremental,
         incremental_doc_paths=incremental_doc_paths,
         skip_llm=skip_llm,
+        base_run_id=base_run_id,
+        base_run_fallback_stages=base_run_fallback_stages or (),
     )
     ctx = hydrated.ctx
     ctx.stage_duration_estimates = _load_stage_duration_estimates(ws_id)
@@ -1928,6 +1932,8 @@ def run_pipeline_task(
         incremental,
         incremental_doc_paths,
         skip_llm,
+        base_run_id=base_run_id,
+        base_run_fallback_stages=base_run_fallback_stages,
     )
     logger.info(
         "pipeline_start run_id=%s workspace_id=%s incremental=%s "
@@ -1976,8 +1982,10 @@ def run_pipeline_task(
             tier,
             llm_stages,
             _exec_stage,
-            base_run_id=base_run_id,
-            base_run_fallback_stages=frozenset(base_run_fallback_stages or []),
+            # ADR-291 · ADR-303 D2: o pin sai do ctx, a mesma fonte do payload do
+            # executor HTTP — store do loop e executor remoto não divergem.
+            base_run_id=ctx.base_run_id,
+            base_run_fallback_stages=ctx.base_run_fallback_stages,
         )
 
         _finalize_pipeline_outcome(run_id, ws_id, tenant_root, has_failure, paused_for_review)
