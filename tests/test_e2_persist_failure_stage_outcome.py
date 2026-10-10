@@ -103,9 +103,6 @@ def tenant_root(tmp_path, monkeypatch):
 
     data_dir = tmp_path / "tenant" / "data" / "financial_statements"
     data_dir.mkdir(parents=True)
-    # `find_all_files` lê o DATA_DIR vinculado no import do módulo, não o que o
-    # `_init_config(ctx.root)` do stage regrava: pinar isola da ordem de import.
-    monkeypatch.setattr(ebd, "DATA_DIR", data_dir)
     monkeypatch.setattr(ebd, "route_to_parser", _PARSERS.get)
     raiz_anterior = e2_common.BASE_DIR
     yield tmp_path / "tenant"
