@@ -756,6 +756,11 @@ Início: YYYY-MM-DD · executor: Go · rollbacks: 0
 |---|---|---|---|---|
 | 1 | | 0 | 0 | ok |
 
+## Parity de cauda (`from_stage`, track F2 §A5) — um grupo por semana
+| semana | from_stage | base_run_id igual nos braços | cents diff | desfecho igual | veredito |
+|---|---|---|---|---|---|
+| 1 | categorize_transactions | sim | 0 | sim | ok |
+
 ## Incidentes
 | data | gatilho | evidência | ação | zerou o relógio? |
 |---|---|---|---|---|
@@ -763,7 +768,7 @@ Início: YYYY-MM-DD · executor: Go · rollbacks: 0
 ## Fechamento (F3 abre quando TODOS verdes)
 - [ ] 14 dias-calendário consecutivos em Go
 - [ ] ≥10 runs E0→E5 reais · [ ] ≥3 com LLM
-- [ ] parity checks semanais todos zero
+- [ ] parity checks semanais todos zero · [ ] parity de cauda zero nos 4 grupos
 - [ ] zero rollback · [ ] zero `database is locked` · [ ] zero zumbi
 - [ ] shell saudável em 100% dos runs
 - [ ] gate humano PASS

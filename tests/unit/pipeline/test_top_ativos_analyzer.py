@@ -136,10 +136,19 @@ class TestImoveisInvestimento:
                 )
             )
         )
-        # ADR-337: rótulo classe-only na fonte (não lê a descrição cartorial).
-        assert r.top_ativos[0].nome == "Imóvel de investimento"
+        # ADR-337: rótulo classe-only na fonte (não lê a descrição cartorial). Sem id o uso
+        # é desconhecido, e o nome segue a classificação ([[ADR-444]] D4).
+        assert r.top_ativos[0].nome == "Imóvel com uso não apurado"
+        assert r.top_ativos[0].classificacao_imovel == "desconhecido"
         assert r.top_ativos[0].classe == "Imóveis Investimento"
         assert r.top_ativos[0].tipo_origem == "imovel"
+
+    def test_imovel_classificado_mantem_o_rotulo_de_investimento(self):
+        cfg = TopAtivosConfig.from_configs(property_classification_overrides={"p-sala": "locado"})
+        imovel = {"property_id": "p-sala", "valor_irpf": 300_000}
+        r = TopAtivosAnalyzer(cfg).analyze(_entries(("david", _bens(imoveis=[imovel]))))
+        assert r.top_ativos[0].nome == "Imóvel de investimento"
+        assert r.top_ativos[0].classificacao_imovel == "locado"
 
     def test_residencia_filtrada_por_property_id_override(self):
         """ADR-215 §1: o override `residencia_principal` tira o imóvel do ranking."""
@@ -152,7 +161,7 @@ class TestImoveisInvestimento:
         ]
         r = TopAtivosAnalyzer(cfg).analyze(_entries(("david", _bens(imoveis=imoveis))))
         assert len(r.top_ativos) == 1
-        assert r.top_ativos[0].nome == "Imóvel de investimento"
+        assert r.top_ativos[0].nome == "Imóvel com uso não apurado"
 
     def test_imovel_nome_e_classe_only_sem_pii(self):
         """ADR-337/PD-02/H1: a descrição cartorial (matrícula/IPTU/CNPJ/endereço)
@@ -166,7 +175,7 @@ class TestImoveisInvestimento:
             _entries(("david", _bens(imoveis=[{"descricao": registral, "valor_irpf": 500_000}])))
         )
         nome = r.top_ativos[0].nome
-        assert nome == "Imóvel de investimento"
+        assert nome == "Imóvel com uso não apurado"
         for marker in ("Matríc", "IPTU", "CNPJ", "AV ", "APARTAMENTO", "Amostras"):
             assert marker not in nome, f"vazou marcador registral em top_ativos[].nome: {marker!r}"
 

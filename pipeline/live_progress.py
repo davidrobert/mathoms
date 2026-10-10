@@ -8,11 +8,17 @@ from __future__ import annotations
 import os
 from typing import Any, Literal
 
+from pipeline.run_deadline import time_limit_exceptions
+
 # ADR-119: fases válidas do contrato LiveStep. Espelha `LiveStepPhase` em
 # backend/app/services/pipeline/events.py — duplicada aqui para manter pipeline/
 # sem import obrigatório de backend/ (boundary check).
 LiveStepPhase = Literal["preparing", "awaiting_llm", "validating", "persisting", "finalizing"]
 
+# Best-effort, mas nunca sobre o fim de prazo do run (ADR-446): estes três rodam na
+# thread principal, com I/O, dentro do laço de documentos — o lugar mais provável
+# para o soft time limit estourar. Engolido aqui, o stage seguia como se nada fosse.
+#
 # A37.l12 (CTO-06): cadência do heartbeat in-stage — DB write a cada N docs.
 _HEARTBEAT_EVERY_N_DOCS_ENV = "MATHOMS_HEARTBEAT_EVERY_N_DOCS"
 # Cadência default 10: com watchdog de 15 min, qualquer stage que processe ≥1
@@ -41,6 +47,8 @@ def emit_stage_activity(
             message=message,
             extra=extra or None,
         )
+    except time_limit_exceptions():
+        raise
     except Exception:
         pass
 
@@ -75,6 +83,8 @@ def emit_item_progress(
             phase=phase,
             estimated_duration_ms=estimated_duration_ms,
         )
+    except time_limit_exceptions():
+        raise
     except Exception:
         pass
     _record_heartbeat_every_n_docs(run_id, items_done)
@@ -97,5 +107,7 @@ def _record_heartbeat_every_n_docs(run_id: str, items_done: int) -> None:
         from backend.app.services.pipeline.heartbeat import record_in_stage_heartbeat
 
         record_in_stage_heartbeat(run_id)
+    except time_limit_exceptions():
+        raise
     except Exception:
         pass

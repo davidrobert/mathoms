@@ -44,13 +44,22 @@ def assert_pii_free(details: dict) -> dict:
     return details
 
 
+def _route_template(request: Request) -> str:
+    """Template da rota com o prefixo do ``include_router`` (ex.: ``/api/v1/workspaces/{workspace_id}/reports``)."""
+    # fastapi ≥0.137 põe em scope["route"] a rota original, sem prefixo; a efetiva
+    # só existe nesta chave privada. test_audited_get_writes_access_row exige o
+    # template exato e reprova se uma versão nova mover a chave.
+    effective = request.scope.get("fastapi", {}).get("effective_route_context")
+    route_obj = effective or request.scope.get("route")
+    return getattr(route_obj, "path", request.url.path)
+
+
 def _build_access_details(request: Request) -> dict:
     """Monta o ``details`` allowlistado (template de rota + chaves de query), já guardado anti-PII."""
-    route_obj = request.scope.get("route")
     return assert_pii_free(
         AccessAuditDetails(
             method=request.method,
-            route=getattr(route_obj, "path", request.url.path),
+            route=_route_template(request),
             query_keys=tuple(sorted(request.query_params.keys())),
         ).model_dump()
     )

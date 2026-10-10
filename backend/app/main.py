@@ -66,7 +66,7 @@ from backend.app.application.base.errors import (
 )
 from backend.app.core.config import settings
 from backend.app.core.logging import setup_logging
-from backend.app.core.otel import instrument_fastapi, setup_otel
+from backend.app.core.otel import NATIVE_TELEMETRY_OFF, instrument_fastapi, setup_otel
 from backend.app.middleware.correlation import CorrelationIdMiddleware
 from backend.app.middleware.legacy_deprecation import LegacyApiDeprecationMiddleware
 from backend.app.middleware.security_headers import SecurityHeadersMiddleware
@@ -100,6 +100,10 @@ app = FastAPI(
     docs_url=f"{settings.API_PREFIX}/docs",
     openapi_url=f"{settings.API_PREFIX}/openapi.json",
     servers=[{"url": settings.API_PREFIX, "description": "Canonical v1"}],
+    # fastapi ≥0.142 liga OTel nativo por default quando há TracerProvider global
+    # (o setup_otel sempre registra um). A fonte de instrumentação segue a da
+    # ADR-110 (contrib + log JSON redigido); trocar é emenda da ADR-110, não bump.
+    telemetry=NATIVE_TELEMETRY_OFF,
 )
 
 app.add_middleware(CorrelationIdMiddleware)

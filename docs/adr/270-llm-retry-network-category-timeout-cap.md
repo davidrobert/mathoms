@@ -5,7 +5,7 @@ title: "Retry de LLM calls — categoria network + cap de timeout"
 status: Decidido
 phase: A17.llm-retry
 date: "2026-05-28"
-amended_at: ["2026-06-12", "2026-08-15", "2026-10-08"]
+amended_at: ["2026-06-12", "2026-08-15", "2026-10-08", "2026-10-09"]
 relates_to:
   - "[[ADR-027]]"
   - "[[ADR-081]]"
@@ -45,6 +45,12 @@ tags:
 > o retry de stage nunca operou in-process, com needle ou sem, e foi apagado pela
 > [[ADR-443]]. A "fonte única" do §1 passa a valer também acima do
 > `LLMService`: não há camada de retry de stage. Ver §"Emenda 2026-10-08".
+>
+> **Emenda (2026-10-09):** o fim de prazo do run **não** é retentado. O sinal do soft
+> time limit chega ao `except` embrulhado pelo litellm/instructor e virava
+> `provider_error`; agora relança `RunTimeLimitExceededError`, e a guarda por tentativa e
+> por chunk mora na função que o instructor chama ([[ADR-446]]). Aditiva: classificação
+> e backoff de erro de provedor não mudam. Ver §"Emenda 2026-10-09".
 
 ## Contexto
 
@@ -267,6 +273,20 @@ A decisão de apagar a camada, em vez de religá-la, está na [[ADR-443]]: o tra
 de LLM é deste `LLMService.call`, que já fecha com `retryable=False`, e uma segunda
 camada re-pagaria as calls feitas pelo stage. É a "fonte única" do §1 estendida para
 cima — o §1 tratava de SDK × `LLMService`, e a extensão ao stage nunca tinha sido escrita.
+
+## Emenda 2026-10-09 — o fim de prazo do run não é retentado
+
+Medido em 2026-10-08: com o sinal injetado no `httpx.Client.send`, o `except` do retry
+recebe `InstructorRetryException -[cause]-> RetryError -[cause]-> InternalServerError
+-[context]-> AnthropicError -[context]-> SoftTimeLimitExceeded`. `classify_error` dava
+`provider_error`, retryable, e a chamada era refeita depois do soft limit. E o instructor
+1.15.1 monta `Retrying(stop=...)` sem `retry=`, então retenta qualquer exceção por dentro
+do `create()` — um laço que o `LLMService` não vê.
+
+A [[ADR-446]] decide: checagem pura do prazo na 1ª linha do `call`; no `except`, fim de
+prazo (cadeia ou relógio) relança tipado e dispara o prazo do run; e na função que o
+instructor chama a cada tentativa, recusa no início, read timeout capado ao tempo
+restante e checagem por chunk. Nada muda para erro de provedor dentro do prazo.
 
 ## Follow-ups
 

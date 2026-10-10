@@ -75,7 +75,7 @@ const PARECER_COM_RETENCAO = {
  * attempt 1 e passou no attempt 2 do MESMO SHA, sem mudança nenhuma.
  *
  * `Received: loading` é a assinatura desta causa. Se fosse override de MSW não
- * aplicado, com `onUnhandledRequest: "error"` a leitura seria `unknown`.
+ * aplicado, com `onUnhandledFrame: "error"` a leitura seria `unknown`.
  */
 describe("useNeedsReviewCount", () => {
   it("500 no endpoint de documentos → unknown, nunca zero", async () => {
