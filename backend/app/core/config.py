@@ -1,8 +1,9 @@
 """Application settings — loaded from environment variables."""
 
+import ipaddress
 from pathlib import Path
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings
 
 from backend.app.core.executor_revision import normalize_executor_revision
@@ -20,6 +21,11 @@ _INSECURE_SECRET_DEFAULTS: frozenset[str] = frozenset(
     }
 )
 _MIN_PROD_SECRET_LEN = 32
+
+# Loopback + RFC 1918 + ULA: onde vivem o Traefik da plataforma e o Next.js na
+# rede Docker. O compose não fixa subnet (sem ``ipam``), então a faixa privada
+# inteira é o que se pode garantir. Ver services/security/client_ip.py.
+_DEFAULT_FORWARDED_ALLOW_IPS = "127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7"
 
 # P0-4 (SEC-06) — chaves Fernet públicas-por-design no repo (compose dev +
 # CI/nightly). Em produção cifrariam BYOK/dado real com chave conhecida; o
@@ -126,6 +132,11 @@ class Settings(BaseSettings):
     RATE_LIMIT_PIPELINE_RUN: str = ""
     RATE_LIMIT_CPF_VIEW_FULL: str = ""
 
+    # Proxies cujo X-Forwarded-For o app aceita (CSV de IPs/CIDRs, ADR-232
+    # §Emenda 2026-10-09). Catch-all é rejeitado no boot: confiar em todo peer
+    # devolve o hop mais à esquerda do XFF, que o cliente forja.
+    FORWARDED_ALLOW_IPS: str = _DEFAULT_FORWARDED_ALLOW_IPS
+
     # ADR-231 — encryption at-rest de PII em pipeline_artifacts.content_json.
     # Default True: writes via DBArtifactStore aplicam Fernet encrypt após
     # schema validation. Reads sempre decriptam sentinel detectado (compat
@@ -171,6 +182,18 @@ class Settings(BaseSettings):
         # são ignoradas silenciosamente em vez de causar ValidationError.
         "extra": "ignore",
     }
+
+    @field_validator("FORWARDED_ALLOW_IPS")
+    @classmethod
+    def _reject_catch_all_proxy_trust(cls, value: str) -> str:
+        """Todo ambiente: catch-all reabre o XFF forjado (ADR-232 §Emenda 2026-10-09)."""
+        offenders = [host for host in value.split(",") if _is_catch_all_host(host.strip())]
+        if offenders:
+            raise ValueError(
+                f"FORWARDED_ALLOW_IPS must list trusted proxy IPs/CIDRs, "
+                f"got catch-all {offenders!r} in {value!r}"
+            )
+        return value
 
     # W1-T05 · Production fail-fast (SR-022 / SR-021). Em
     # ENVIRONMENT=production rejeita: SECRET_KEY em lista de defaults
@@ -220,6 +243,15 @@ class Settings(BaseSettings):
     def executor_revision(self) -> str | None:
         """Revisão do processo em execução; None ≡ desconhecido (ADR-362)."""
         return normalize_executor_revision(self.BUILD_SHA)
+
+
+def _is_catch_all_host(host: str) -> bool:
+    if host == "*":
+        return True
+    try:
+        return ipaddress.ip_network(host, strict=False).prefixlen == 0
+    except ValueError:
+        return False
 
 
 settings = Settings()

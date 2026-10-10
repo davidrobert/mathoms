@@ -184,11 +184,14 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      # `env_file` é runtime e não chega ao `next build`: NEXT_PUBLIC_* entra
+      # por build-arg, interpolado do `--env-file .env.prod.local`.
+      args:
+        NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL: "${NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL:-}"
     env_file:
       - .env.prod.local
     environment:
-      # Rewrite server-side do Next aponta para a rede interna do compose;
-      # NEXT_PUBLIC_API_URL (build-time, usado client-side) já vem do env_file.
+      # Rewrite server-side do Next aponta para a rede interna do compose.
       BACKEND_INTERNAL_URL: http://api:8000
     ports:
       - "127.0.0.1:3000:3000"

@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from backend.app.api.audit import router as audit_router
 from backend.app.api.auth import router as auth_router
@@ -65,7 +66,7 @@ from backend.app.application.base.errors import (
 )
 from backend.app.core.config import settings
 from backend.app.core.logging import setup_logging
-from backend.app.core.otel import instrument_fastapi, setup_otel
+from backend.app.core.otel import NATIVE_TELEMETRY_OFF, instrument_fastapi, setup_otel
 from backend.app.middleware.correlation import CorrelationIdMiddleware
 from backend.app.middleware.legacy_deprecation import LegacyApiDeprecationMiddleware
 from backend.app.middleware.security_headers import SecurityHeadersMiddleware
@@ -99,6 +100,10 @@ app = FastAPI(
     docs_url=f"{settings.API_PREFIX}/docs",
     openapi_url=f"{settings.API_PREFIX}/openapi.json",
     servers=[{"url": settings.API_PREFIX, "description": "Canonical v1"}],
+    # fastapi ≥0.142 liga OTel nativo por default quando há TracerProvider global
+    # (o setup_otel sempre registra um). A fonte de instrumentação segue a da
+    # ADR-110 (contrib + log JSON redigido); trocar é emenda da ADR-110, não bump.
+    telemetry=NATIVE_TELEMETRY_OFF,
 )
 
 app.add_middleware(CorrelationIdMiddleware)
@@ -122,6 +127,9 @@ app.add_middleware(
     expose_headers=["X-Trace-Id"],
     max_age=600,
 )
+# Último add = mais externo: todo o stack vê o cliente já resolvido. A
+# fronteira de trust do XFF vive aqui, não no CLI (services/security/client_ip.py).
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=settings.FORWARDED_ALLOW_IPS)
 
 
 # A6e.3 · ADR-101 R15 — use cases levantam erros de domínio tipados;

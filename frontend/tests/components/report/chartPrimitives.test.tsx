@@ -11,11 +11,22 @@ import { describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, renderHook, screen } from "@testing-library/react";
 
 import {
+  ChartBar,
   ChartConclusion,
   ChartNav,
   ensureChartRegistered,
   useChartTheme,
 } from "@/components/report/charts/primitives";
+
+const chartProps = vi.hoisted((): { options?: unknown } => ({}));
+
+// jsdom não tem `canvas`: o stub só guarda o `options` que o primitivo monta.
+vi.mock("react-chartjs-2", () => ({
+  Chart: ({ options }: { options?: unknown }) => {
+    chartProps.options = options;
+    return <div data-testid="chart-mock" />;
+  },
+}));
 
 describe("ensureChartRegistered()", () => {
   it("é idempotente — múltiplas chamadas não levantam", () => {
@@ -100,5 +111,43 @@ describe("useChartTheme()", () => {
       document.documentElement.removeAttribute("data-theme");
     });
     expect(typeof firstText).toBe("string");
+  });
+});
+
+// O eixo de valor do `ChartBar` horizontal não passava por `formatValue`: o
+// default do Chart.js escrevia o número no locale do navegador e sem `R$`
+// (ReceitaBarChart, S2). O vertical já formatava o Y.
+type TickCallback = (value: number) => string;
+
+interface BarScales {
+  readonly x: { readonly ticks: { readonly callback?: TickCallback } };
+  readonly y: { readonly ticks: { readonly callback?: TickCallback } };
+}
+
+describe("<ChartBar /> · eixo de valor", () => {
+  const formatValue = (v: number) => `valor ${v}`;
+
+  function renderScales(horizontal: boolean): BarScales {
+    render(
+      <ChartBar
+        labels={[""]}
+        series={[{ label: "Salário", data: [20_000] }]}
+        horizontal={horizontal}
+        formatValue={formatValue}
+      />,
+    );
+    return (chartProps.options as { readonly scales: BarScales }).scales;
+  }
+
+  it("horizontal: X é o eixo de valor e passa por formatValue", () => {
+    const { x, y } = renderScales(true);
+    expect(x.ticks.callback?.(20_000)).toBe("valor 20000");
+    expect(y.ticks.callback).toBeUndefined();
+  });
+
+  it("vertical: Y é o eixo de valor e passa por formatValue", () => {
+    const { x, y } = renderScales(false);
+    expect(y.ticks.callback?.(20_000)).toBe("valor 20000");
+    expect(x.ticks.callback).toBeUndefined();
   });
 });
