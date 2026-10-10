@@ -93,6 +93,66 @@ def test_reconcile_via_http_persists_e3_artifact(
     assert persisted["transacoes"][0]["valor"] == 100.0
 
 
+# ADR-291 · ADR-303 D2, ponta a ponta: o `HttpPipelineClient` do backend contra o
+# app real. O MockTransport do backend prova o que vai no fio; aqui o E4 real tem
+# que achar, pelo pin, o E3 que o reconcile real gravou no run base.
+def _seed_base_run_e3(client, factory, tenant: Path) -> None:
+    _seed_e2(factory, "ws-int", "run-base")
+    r = client.post(
+        "/api/v1/pipeline/stages/reconcile_transactions/execute",
+        json={"run_id": "run-base", "workspace_id": "ws-int", "workspace_root": str(tenant)},
+    )
+    assert r.status_code == 200 and r.json()["success"] is True, r.text
+
+
+def _categorize_tail_via_backend_client(client, tenant: Path, *, pinned: bool):
+    from backend.app.services.pipeline.pipeline_client import HttpPipelineClient
+    from pipeline.context import WorkspaceContext
+
+    ctx = WorkspaceContext.for_tenant(tenant, pipeline_run_id="run-cauda")
+    ctx.llm_calls_allowed = False
+    if pinned:
+        ctx.base_run_id = "run-base"
+        ctx.base_run_fallback_stages = frozenset({"E3", "reconcile_transactions"})
+    backend_client = HttpPipelineClient(str(client.base_url), http=client)
+    return backend_client.execute_stage(ctx, "categorize_transactions", workspace_id="ws-int")
+
+
+def _tail_e4_receitas(factory) -> dict | None:
+    from backend.app.services.storage.db_artifact_store import DBArtifactStore
+
+    session = factory()
+    try:
+        store = DBArtifactStore(session, workspace_id="ws-int", pipeline_run_id="run-cauda")
+        return store.read("categorize_transactions", "receitas")
+    finally:
+        session.close()
+
+
+def test_from_stage_pelo_cliente_http_le_o_e3_do_run_base(
+    client, tenant_minimal, artifact_db_session_factory, _plaintext_artifacts
+):
+    _seed_base_run_e3(client, artifact_db_session_factory, tenant_minimal)
+
+    result = _categorize_tail_via_backend_client(client, tenant_minimal, pinned=True)
+
+    assert result.success is True, result.error
+    receitas = _tail_e4_receitas(artifact_db_session_factory)
+    assert receitas is not None and receitas["total_transacoes"] > 0, receitas
+
+
+def test_from_stage_sem_pin_aborta_no_guard_do_e4(
+    client, tenant_minimal, artifact_db_session_factory, _plaintext_artifacts
+):
+    """Controle: sem o pin o E3 do base é invisível ao run de cauda (ADR-291 D5)."""
+    _seed_base_run_e3(client, artifact_db_session_factory, tenant_minimal)
+
+    result = _categorize_tail_via_backend_client(client, tenant_minimal, pinned=False)
+
+    assert result.success is False
+    assert "ADR-291" in (result.error or ""), result.error
+
+
 def test_store_unavailable_returns_503(client, tmp_path, monkeypatch):
     from app.services import artifact_session
 

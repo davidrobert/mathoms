@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from pipeline.domain.lineage_registry import LINEAGE_RULE_REFS
+from pipeline.domain.services.imovel_na_carteira import CLASSES_SEM_PESO
 from pipeline.domain.services.lineage_fields import (
     LineageBlock,
     LineageField,
@@ -281,9 +282,11 @@ def janelas_lineage_fields(fluxo_legacy: FluxoLegacyDict) -> dict[str, LineageFi
 
 
 def total_investido_field(investimentos_legacy: InvestimentosLegacyDict) -> LineageField:
+    # [[ADR-444]] D3: a linha sem peso publica valor e fica FORA do total investido.
     refs = [
         e5_input_ref(f"investimentos.tabela_classes[{classe['categoria']}].valor")
         for classe in investimentos_legacy.get("tabela_classes") or []
+        if classe["categoria"] not in CLASSES_SEM_PESO
     ]
     return {
         "value": money_str(investimentos_legacy["total"]),

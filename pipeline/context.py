@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional
 
 if TYPE_CHECKING:
     from pipeline.artifact_store import ArtifactStore
@@ -64,6 +64,14 @@ class WorkspaceContext:
     incremental: bool = False
     #: Stored paths of new documents (relative to tenant root). Used by E0/E2 to filter.
     incremental_doc_paths: List[str] = field(default_factory=list)
+
+    #: ADR-291 — pin do run base de um ``from_stage``: os stages run-scoped que o
+    #: run lê mas não produz vêm de ``base_run_id``, nunca do latest. É o mesmo pin
+    #: do ``DBArtifactStore`` do executor; o ``HttpPipelineClient`` o reenvia no
+    #: payload (ADR-303 D2), senão o executor remoto lê E3/E4/E5 do run corrente.
+    #: ``None`` + vazio = run full/incremental/resume.
+    base_run_id: Optional[str] = field(default=None, repr=False)
+    base_run_fallback_stages: FrozenSet[str] = field(default_factory=frozenset, repr=False)
 
     #: ArtifactStore injetável (ADR-083 · ADR-212 PR3b). Obrigatório em runtime:
     #: ``get_artifact_store()`` raise ``RuntimeError`` se ``None``. Backend Celery
