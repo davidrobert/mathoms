@@ -166,6 +166,27 @@ obsoleto e arquivar quando essa transição acontecer.
 - **FERNET_KEY**, **JWT secret:** ver SETUP e tarefas F7.
 - Escalação: definir contato on-call antes do beta (preencher aqui quando existir).
 
+### 6.1 Proxy reverso — de quem o backend aceita `X-Forwarded-For`
+
+O IP do cliente (balde per-IP de `login`/`register`/`refresh` e IP do audit log)
+é o primeiro hop **não-confiável** do XFF, lido da direita
+([[ADR-232]] §Emenda 2026-10-09).
+
+- **Env:** `MATHOMS_FORWARDED_ALLOW_IPS` — CSV de IPs/CIDRs dos proxies. Comentada
+  = default loopback + RFC 1918 + ULA (Traefik e Next.js na rede Docker). `*`,
+  `0.0.0.0/0` e `::/0` abortam o boot.
+- **Launchers:** todo `uvicorn backend.app.main:app` roda `--no-proxy-headers`.
+  Não passe `--forwarded-allow-ips` nem exporte `FORWARDED_ALLOW_IPS` (sem
+  prefixo, é a env do CLI do uvicorn).
+- **Verificar a borda ao vivo:** no host, `grep -rn forwardedHeaders` no
+  compose/config do proxy da plataforma. Sem `insecure`/`trustedIPs`, o Traefik
+  descarta o XFF de entrada. Com eles, o hop forjado chega ao app, que continua
+  lendo só o hop que o Traefik acrescentou.
+- **Antes de ligar o proxy laranja do Cloudflare em `app`/`api`:** some as faixas
+  publicadas do Cloudflare a `MATHOMS_FORWARDED_ALLOW_IPS` (e ao `trustedIPs` do
+  Traefik). Sem isso o balde passa a ser por edge do CF, e usuários atrás do mesmo
+  PoP dividem o limite de login.
+
 ---
 
 ## 7. Console interno local (F7F-Local · IA-0)
