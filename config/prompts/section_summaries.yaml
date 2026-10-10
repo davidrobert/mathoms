@@ -8,6 +8,11 @@
 # 1.2.0 (2026-10-09, [[ADR-341]] §Emenda): a S3 deixa de pedir gap vs alvo, estratégia
 # de aporte e "contrafluxo" — o slice dela não traz alvo nem desvio, e nenhum produtor
 # emite os dados do contrafluxo; "contrafluxo" sai do vocabulário do system prompt.
+# 2.0.0 (2026-10-09, [[ADR-144]] §Emenda): major (ADR-233) — o schema de saída fica só com
+# `summary_md`. `tone` e `key_metric_ref` não tinham leitor, e 14 das 17 refs citadas nem
+# existiam no E5. Saem o bloco do campo `tone`, os "Tom:" e os "`key_metric_ref` esperado"
+# das seções. A regra de dinheiro deixa de oferecer a referência, "negrito raro" vira
+# texto puro (o renderer imprime literal) e nome de pessoa deixa de ser aceito.
 #
 # Para cada section_id do `report_layout.yaml`, define system + user prompt
 # template para o `SectionSummaryGenerator` (LiteLLM + Instructor).
@@ -20,25 +25,25 @@
 #     canônico de report_layout.yaml.
 #   - Critério tonal explícito por seção (warning/positive/neutral).
 #
-# Convenções (preservadas):
+# Convenções:
 #   - Português brasileiro, registro consultivo, máx. 2 frases (≤280 chars).
-#   - LLM NUNCA formata BRL inline (ADR-090) — referencia métrica via
-#     `key_metric_ref` que o renderer resolve com <MonetaryValue/>.
-#   - User prompt tem placeholder `{section_data_json}` com o snapshot
-#     filtrado para a seção (gerador injeta JSON serializado, sem PII).
-#   - System prompt é compartilhado por todas as seções; o tom específico
+#   - LLM NUNCA cita valor monetário (ADR-090): o leitor vê os KPIs no
+#     cabeçalho, e o generator descarta texto com valor (`monetary_inline`).
+#   - User prompt tem placeholder `{section_data_json}` com o slice declarado
+#     da seção (`_SECTION_KEYS` no orchestrator) e nada mais.
+#   - System prompt é compartilhado por todas as seções; o foco específico
 #     muda no user_prompt.
 #
-# Mudança de contrato: nenhuma. Apenas conteúdo de prompt.
+# Mudança de contrato na v2.9.1: nenhuma (a 2.0.0 mudou o schema de saída).
 # Cache: bump de `version` INVALIDA o cache imediatamente — a chave é
-#   v{version}:{workspace_id}:{snapshot_hash}:{section_id}
+#   v{version}:{model}:{schema_fingerprint}:{workspace_id}:{snapshot_hash}:{section_id}
 #   (section_summary_generator._cache_key; version lida deste arquivo via
 #   load_prompt_version_from_yaml no orchestrator). Fix do audit r6
 #   (2026-07-04); antes o texto da versão anterior era servido até o TTL
 #   (24h) expirar.
 # ==============================================================================
 
-version: "1.2.0"
+version: "2.0.0"
 
 system_prompt: |
   Você edita relatórios de planejamento patrimonial pessoal para a Mathoms.
@@ -53,10 +58,10 @@ system_prompt: |
 
   REGRAS DE FORMATO
   - Máximo 280 caracteres no total. Frases curtas (≤20 palavras).
-  - Prosa direta. Sem bullets, sem markdown além de ênfase leve (negrito raro).
-  - Sem valores monetários inline (proibido "R$ 1.234"). Para citar a métrica
-    principal, preencha `key_metric_ref` (ex.: "patrimonio.liquido"); o
-    renderer formata com <MonetaryValue/>.
+  - Texto puro, em prosa direta: sem bullets e sem markdown (o texto é
+    impresso literalmente).
+  - Sem valores monetários (proibido "R$ 1.234"): o leitor já vê os KPIs no
+    cabeçalho da seção.
   - Sem percentuais inventados — só os que aparecem em section_data_json.
 
   REGRAS DE CONTEÚDO (anti-hallucination — críticas)
@@ -70,10 +75,10 @@ system_prompt: |
     não o porquê especulado.
   - Proibido: prometer retorno, garantir resultado, recomendar produto
     específico. Você descreve, não aconselha.
-  - Se o payload está incompleto, escreva summary mais genérico e tom
-    neutro — nunca invente para preencher.
-  - Nunca exiba CPF, nome completo, número de conta ou agência. Primeiro
-    nome de membro da família é aceitável quando vier de `section_data_json`.
+  - Se o payload está incompleto, escreva summary mais genérico — nunca
+    invente para preencher.
+  - Nunca cite nome de pessoa, CPF, número de conta ou agência, mesmo que
+    apareçam em `section_data_json`.
 
   REGRAS DE TOM (anti-padrões COPY_GUIDELINES §9)
   - Sem exclamação. Sem "Ops!", "Putz", "Eita", "Pronto!", "Excelente!".
@@ -84,14 +89,6 @@ system_prompt: |
   - Trate o leitor como "você" (segunda pessoa de respeito) ou descreva
     em terceira pessoa neutra ("a família", "o patrimônio"). Nunca "tu",
     "vocês" sem contexto plural explícito, "a gente".
-
-  CAMPO `tone`
-  - "warning" — quando o payload indica risco ou desvio relevante (ex.:
-    reserva < 6 meses, endividamento > 30%, taxa de poupança < 10%,
-    aporte abaixo de meta, alerta crítico ativo).
-  - "positive" — quando indica melhora consistente (ex.: cobertura ≥ 12
-    meses, taxa de poupança ≥ 25%, aportes ≥ 100% da meta no ciclo).
-  - "neutral" — caso intermediário ou dado insuficiente para classificar.
 
 sections:
 
@@ -116,13 +113,6 @@ sections:
       domina, se a fração investível é compatível com o estágio, se há
       concentração ou alavancagem que mereça atenção. Não repita o valor
       total do patrimônio (já está no cabeçalho).
-
-      Tom: "warning" se endividamento > 30% do bruto OU reserva < 6 meses;
-      "positive" se patrimônio investível efetivo > 50% do bruto E reserva
-      ≥ 12 meses; "neutral" caso contrário.
-
-      `key_metric_ref` esperado: `patrimonio.liquido` (default) ou
-      `patrimonio.investivel_efetivo` quando o ângulo for fração investível.
 
       Dados da seção (JSON):
       ```json
@@ -150,13 +140,6 @@ sections:
       sobrou ou faltou caixa, qual a taxa de poupança recorrente, e o sinal
       comportamental dominante. Se houver desvio relevante de categoria
       (despesa fora de teto), mencione qual.
-
-      Tom: "warning" se fluxo líquido < 0 OU taxa de poupança < 10% OU
-      alerta comportamental ativo; "positive" se taxa de poupança ≥ 25%
-      mantida no histórico; "neutral" caso contrário.
-
-      `key_metric_ref` esperado: `fluxo_caixa.fluxo_liquido_mensal` ou
-      `fluxo_caixa.taxa_poupanca_pct` (escolha o que ancora o ângulo).
 
       Dados da seção (JSON):
       ```json
@@ -186,11 +169,6 @@ sections:
       e se um único ativo concentra a carteira. Não comente alvo, desvio,
       próximo aporte nem conjuntura de juros.
 
-      Tom: "warning" se um único ativo, fora imóveis de investimento, passa
-      de 20% em `pct_carteira`; "neutral" caso contrário.
-
-      `key_metric_ref` esperado: `investimentos.total`.
-
       Dados da seção (JSON):
       ```json
       {section_data_json}
@@ -215,12 +193,6 @@ sections:
       imobiliária** — se o yield bruto compete com o CDI ou está abaixo,
       e o peso da renda de aluguel no fluxo total da família. Não comente
       a residência como investimento (não é).
-
-      Tom: "warning" se yield bruto dos imóveis de investimento < CDI do
-      período; "positive" se yield bruto > CDI + 2pp; "neutral" caso
-      contrário ou sem imóveis de investimento.
-
-      `key_metric_ref` esperado: `imoveis.yield_bruto_pct`.
 
       Dados da seção (JSON):
       ```json
@@ -248,13 +220,6 @@ sections:
       com o cenário base. Quando citar prazo, mencione que é projeção sob a
       premissa de retorno real do payload (sem inventar a taxa).
 
-      Tom: "warning" se prazo realista > 20 anos OU aporte do ciclo < 80%
-      do necessário para o cenário base; "positive" se prazo ≤ 10 anos no
-      cenário base com aporte sustentável; "neutral" caso contrário.
-
-      `key_metric_ref` esperado: `independencia.gap` ou
-      `independencia.prazo_anos_realista`.
-
       Dados da seção (JSON):
       ```json
       {section_data_json}
@@ -280,12 +245,6 @@ sections:
       atual** — alíquota efetiva, se há pendência estrutural relevante
       (holding em estudo, declaração obrigatória pendente). Não opine sobre
       qual regime escolher.
-
-      Tom: "warning" se alíquota efetiva > 15% OU pendência crítica
-      (FBAR/8938 atrasada, contador sem definição); "positive" se alíquota
-      ≤ 8% e estrutura completa; "neutral" caso contrário.
-
-      `key_metric_ref` esperado: `tributacao.aliquota_efetiva_pct`.
 
       Dados da seção (JSON):
       ```json
@@ -315,13 +274,6 @@ sections:
       quantos riscos prioritários estão sem cobertura adequada e qual o
       mais grave. Não recomende produto. Não use linguagem alarmista.
 
-      Tom: "warning" se ≥ 1 risco crítico sem cobertura OU planejamento
-      sucessório inexistente; "positive" se cobertura completa para vida,
-      invalidez e sucessório; "neutral" caso contrário.
-
-      `key_metric_ref` esperado: `riscos.criticos_count` ou
-      `riscos.maior_severidade_descoberta`.
-
       Dados da seção (JSON):
       ```json
       {section_data_json}
@@ -344,11 +296,6 @@ sections:
       Escreva 1-2 frases que ancorem o leitor na **leitura de conjunto** —
       onde a família está forte, qual a urgência número 1 do ciclo. Cite
       no máximo 1 ponto forte e 1 urgência; o detalhe está nos cards.
-
-      Tom: "warning" se score < 5 OU ≥ 1 urgência crítica; "positive" se
-      score ≥ 8 sem urgência crítica; "neutral" caso contrário.
-
-      `key_metric_ref` esperado: `score.valor`.
 
       Dados da seção (JSON):
       ```json
@@ -376,12 +323,6 @@ sections:
       atrasado, e o sinal de variação patrimonial dominante (alta, queda
       por mercado, queda por gasto extraordinário).
 
-      Tom: "warning" se cobertura < 80% OU algum destino crítico vencido;
-      "positive" se cobertura ≥ 100% com todos os destinos no prazo;
-      "neutral" caso contrário.
-
-      `key_metric_ref` esperado: `aportes.cobertura_pct`.
-
       Dados da seção (JSON):
       ```json
       {section_data_json}
@@ -408,12 +349,6 @@ sections:
       concentra as pendências (tributário, investimentos, seguros…) se o
       payload identificar.
 
-      Tom: "warning" se ≥ 1 tarefa vencida OU concluídas < 50% do ciclo;
-      "positive" se concluídas ≥ 90% sem vencidas; "neutral" caso contrário.
-
-      `key_metric_ref` esperado: `tarefas.pct_concluidas` ou
-      `tarefas.vencidas_count`.
-
       Dados da seção (JSON):
       ```json
       {section_data_json}
@@ -437,13 +372,6 @@ sections:
       Escreva 1-2 frases que ancorem o leitor no **horizonte curto** —
       quantos itens na timeline, qual o mais crítico (deadline fiscal,
       vencimento de seguro, prazo de aporte). Sem dramatização.
-
-      Tom: "warning" se ≥ 1 item crítico nos próximos 7 dias OU deadline
-      fiscal/regulatório iminente; "positive" se timeline leve sem itens
-      críticos; "neutral" caso contrário.
-
-      `key_metric_ref` esperado: `proximos_15d.criticos_count` ou
-      `proximos_15d.proximo_deadline`.
 
       Dados da seção (JSON):
       ```json

@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -20,8 +20,6 @@ class FakeLLMSuccess:
     """LLM client que sempre retorna o mesmo output programado."""
 
     text: str = "Summary determinístico do fake."
-    tone: str = "neutral"
-    key_metric_ref: Optional[str] = None
     prompt_tokens: int = 1500
     completion_tokens: int = 300
     calls: int = 0
@@ -29,13 +27,25 @@ class FakeLLMSuccess:
     def call(self, *, system_prompt: str, user_prompt: str, section_id: str) -> LLMRawResponse:
         self.calls += 1
         return LLMRawResponse(
-            output=SectionSummaryOutput(
-                summary_md=self.text,
-                tone=self.tone,  # type: ignore[arg-type]
-                key_metric_ref=self.key_metric_ref,
-            ),
+            output=SectionSummaryOutput(summary_md=self.text),
             prompt_tokens=self.prompt_tokens,
             completion_tokens=self.completion_tokens,
+        )
+
+
+@dataclass
+class FakeLLMPromptRecorder:
+    """LLM client que sucede e grava ``(section_id, user_prompt)`` de cada chamada."""
+
+    text: str = "Summary determinístico do fake."
+    prompts: list[tuple[str, str]] = field(default_factory=list)
+
+    def call(self, *, system_prompt: str, user_prompt: str, section_id: str) -> LLMRawResponse:
+        self.prompts.append((section_id, user_prompt))
+        return LLMRawResponse(
+            output=SectionSummaryOutput(summary_md=self.text),
+            prompt_tokens=1500,
+            completion_tokens=300,
         )
 
 
@@ -51,13 +61,14 @@ class FakeLLMRaisingClient:
         raise self.error
 
 
-def make_fake_fallback(text: str = "fallback determinístico") -> Callable:
-    """Fallback simples para tests — retorna sempre o mesmo texto."""
+def nunca_cita_dinheiro(summary_md: str) -> bool:
+    """Detector monetário que nunca dispara — o canônico mora no backend."""
+    return False
 
-    def _fallback(section_id, snapshot_data):
-        return text
 
-    return _fallback
+def sempre_cita_dinheiro(summary_md: str) -> bool:
+    """Detector monetário que sempre dispara — força o descarte `monetary_inline`."""
+    return True
 
 
 @dataclass

@@ -20,6 +20,18 @@ RUN_SETUP_FAILED = "run_setup_failed"
 #: ação de runbook diferentes de ``DISPATCH_FAILED``, daí o nome próprio.
 DISPATCH_UNCONFIRMED = "dispatch_unconfirmed"
 
+#: ADR-446 — o run atingiu o soft time limit e o loop o encerrou: nenhum stage começa
+#: depois do prazo. Só acompanha `failed`; com o E5 pronto o desfecho é `partial_failure`
+#: e os stages que não rodaram ficam `degraded` (ADR-357 §3 — campo de falha não vai
+#: ao lado de status entregue).
+TIME_LIMIT_EXCEEDED = "time_limit_exceeded"
+
 ALL_REASONS: frozenset[str] = frozenset(
-    {HEARTBEAT_TIMEOUT, DISPATCH_FAILED, RUN_SETUP_FAILED, DISPATCH_UNCONFIRMED}
+    {
+        HEARTBEAT_TIMEOUT,
+        DISPATCH_FAILED,
+        RUN_SETUP_FAILED,
+        DISPATCH_UNCONFIRMED,
+        TIME_LIMIT_EXCEEDED,
+    }
 )

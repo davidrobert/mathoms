@@ -7,7 +7,7 @@ plan: PLAN-report-trust
 status: planned
 priority: P1
 branch_slug: a40-l8-manifest-parecer-cobertura
-adrs: []
+adrs: ["[[ADR-444]]"]
 depends_on: []
 tags:
   - type/lane
@@ -62,3 +62,25 @@ proteção inexistente — foi o que aconteceu nesta própria rodada.
   `evicted == []`, não "cabe no cap".
 - Scan de PII com a seção nova na whitelist + identificador sintético injetado ⇒
   falha se sobreviver ao sanitizer.
+
+## Escopo adotado — 2026-10-09
+
+Da [[ADR-444]] §Deferimento 5 (o PR-C da [[A40.l122]], dividido em 2026-10-09): o alcance do
+parecer sobre a linha "Imóveis com uso não apurado". Entra aqui pelo critério de admissão 1 da
+[[MOC-sprint-a42]] — esta lane é dona da superfície "o que o parecer alcança" — e não muta
+E3/E5, então fica fora da cláusula ONZE. A l8 segue `planned` na Onda 2: adotar sem liberar é
+adiar, e liberar é do dono. Co-design `prompt-engineer` + `financial-planner`.
+
+- Projetar `$.investimentos.total_imoveis_uso_nao_apurado` e tirá-lo do escape em
+  `dev/_planner_coverage_scope.py`.
+- A tabela de classes do manifest tem `max_rows: 10`, e a linha nova entra sempre por último: com
+  as dez classes presentes, o distiller a corta (`backend/app/services/parecer_distiller.py:208`).
+  O `pct` dela é `null`.
+- O hint de `ratios` que chama "imóveis de investimento" de TETO deixa de valer para essa linha
+  ([[A40.l123]] item 7).
+- Regra em `narrative_hints`, que sobrevive à evicção: a concentração segue com a ressalva, porque
+  o desconhecido fica no numerador ([[ADR-420]] §D2).
+- Um bump MINOR do manifest, com o eval do dono (versão anterior × nova).
+
+Alcance zero no dogfood (no U5 a residência é identificada e o predicado da ADR-444 é falso);
+no beta, é o regime default de workspace novo.
