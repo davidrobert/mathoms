@@ -3,6 +3,7 @@ import { describe, it, expect } from "vitest";
 import {
   FAILURE_REASONS_CONHECIDOS,
   messageForFailureReason,
+  prefersResumeFromStage,
 } from "@/lib/pipelineFailureReason";
 import { buildUserFacingError } from "@/lib/pipelineErrorMessages";
 
@@ -10,14 +11,28 @@ import { buildUserFacingError } from "@/lib/pipelineErrorMessages";
 // UI mostraria mensagem honesta e o campo nunca saiu do DB. Sem este reader os 4 valores do
 // vocabulário são legíveis só por SQL.
 describe("messageForFailureReason", () => {
-  it("cobre os 4 valores do vocabulário do backend", () => {
+  it("cobre os valores do vocabulário do backend", () => {
     // Espelha `ALL_REASONS` de `backend/app/services/pipeline/pipeline_failure_reasons.py`.
     expect([...FAILURE_REASONS_CONHECIDOS].sort()).toEqual([
       "dispatch_failed",
       "dispatch_unconfirmed",
       "heartbeat_timeout",
       "run_setup_failed",
+      "time_limit_exceeded",
     ]);
+  });
+
+  it("não fala em prazo no tempo limite — a palavra já tem outros sentidos no produto", () => {
+    // ADR-446 + COPY_GUIDELINES §2: "prazo" é do IF, da dívida e da tarefa.
+    expect(JSON.stringify(messageForFailureReason("time_limit_exceeded"))).not.toMatch(/prazo/i);
+  });
+
+  it("põe a retomada como ação primária quando o hint manda retomar", () => {
+    // "Tentar novamente" refaz o run inteiro — o caminho com mais chance de estourar de novo.
+    expect(prefersResumeFromStage("time_limit_exceeded")).toBe(true);
+    expect(prefersResumeFromStage("heartbeat_timeout")).toBe(true);
+    expect(prefersResumeFromStage("dispatch_failed")).toBe(false);
+    expect(prefersResumeFromStage(null)).toBe(false);
   });
 
   it.each(FAILURE_REASONS_CONHECIDOS)("dá headline e hint para %s", (reason) => {
