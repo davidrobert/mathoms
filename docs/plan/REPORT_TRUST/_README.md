@@ -440,6 +440,33 @@ título para ID. O gatilho de pickup é não haver lane ativa da A40 tocando
 `frontend/src/components/report/**`. Até lá, o gate v1 continua protegendo
 desaparecimento de card; o débito residual é o acoplamento a mudanças de copy.
 
+## Deferimentos da [[A40.l122]] — 2026-10-09
+
+A [[ADR-444]] (§Deferimento) deixou seis itens com a própria lane como dona. O item 1 segue nela
+(PR-D) e o alcance do item 5 foi para a [[A40.l8]]; o resto fica aqui, porque nenhuma lane viva
+possui os arquivos (critério de admissão 1 da [[MOC-sprint-a42]]), a A40 não admite lane nova
+(critério 2) e a A42 não admite E5 nem o parecer (critério 3). No dogfood o alcance é zero — no
+U5 a residência é identificada e o predicado é falso —, e no beta é o regime default de
+workspace novo: por isso o gatilho dos itens 5 e 6 é o beta, não o pós-A40 (`product-manager`).
+
+- **Guarda determinística contra prescrição sobre a linha sem peso** (item 5) — P1, dono
+  `prompt-engineer` (checker) + `financial-planner` (red line). É o mesmo mecanismo do
+  §Deferimento 1 da [[A40.l123]] (checker pós-LLM de venda de imóvel com fatia em aberto), e os
+  dois andam juntos. Retomada: antes do beta, ou quando o re-run 1 mostrar a prescrição.
+- **Exceção de tom no resumo da S3** (item 5) — P2, dono `prompt-engineer`. Mora em
+  `section_summaries.yaml`, não no manifest do parecer. Retomada: religar o resumo da S3, hoje
+  desligado (`summary_source: null` em `config/report_layout.yaml`).
+- **Baseline de print do regime, com a linha sem peso no #1** (item 6) — P2, dono
+  `product-designer`. Pede fixture própria gerada no runner Linux. Retomada: antes do beta.
+- **Base do `OutrosExcessivoWarning` é `total_financeiro`** (item 2, lacuna da A37.l9) — P2,
+  dono `financial-planner` (regra) + `data-engineer` (medição). Pode mover o dogfood. Retomada:
+  depois de a A40 drenar, porque muta E5 e, dentro dela, entraria na cláusula ONZE.
+- **`golden_diff` cobra manifesto de item `new`/`removed` com folha monetária não nula**
+  (item 3) — P2, dono `data-engineer` (substrato [[A23.l2]]). Retomada: o próximo rebaseline que
+  mover item entre linhas, no padrão da [[ADR-434]] §Aberto. Não muta E5: pode sair dentro da A40.
+- **Deleção do `MemberAnalyzer`** (item 4) — P3, dono `data-engineer`. Pré-condição da
+  [[A40.l77]]: confirmar que os helpers não são origem de `patrimonio_types.investimento_valor`.
+
 ## Critério de done do plano
 
 Re-run dogfood completo sem: violação de fórmula canônica, contradição

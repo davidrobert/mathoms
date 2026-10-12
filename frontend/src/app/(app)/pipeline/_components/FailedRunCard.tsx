@@ -5,7 +5,7 @@ import { ChevronDown, ChevronUp, RefreshCw, XCircle } from "lucide-react";
 import type { PipelineRunResponse, PipelineStageLog } from "@/lib/api";
 import { formatDuration, stageName } from "@/lib/format";
 import { buildUserFacingError } from "@/lib/pipelineErrorMessages";
-import { messageForFailureReason } from "@/lib/pipelineFailureReason";
+import { messageForFailureReason, prefersResumeFromStage } from "@/lib/pipelineFailureReason";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { deriveFailedStage } from "./failedStage";
@@ -74,9 +74,9 @@ function FailedRunHeader({
   onDismiss: () => void;
 }) {
   const failedStage = run.stage_logs.find((s) => s.status === "failed");
-  // `failure_reason` VENCE o texto do stage: quando o backend nomeou a causa, o run morreu
-  // antes de executar stage algum, e derivar a mensagem de `failedStage?.errors` (undefined
-  // aqui) produziria "travou no estágio inicial" — afirmação falsa (A40.l27).
+  // `failure_reason` VENCE o texto do stage: quando o backend nomeou a causa, ela é do run.
+  // Ou não há stage (derivar de `failedStage?.errors` produziria "travou no estágio
+  // inicial", A40.l27), ou o texto do stage só registra o corte (`time_limit_exceeded`).
   const userError =
     messageForFailureReason(run.failure_reason) ??
     buildUserFacingError(failedStage?.errors, deriveFailedStage(run));
@@ -105,6 +105,36 @@ function FailedRunHeader({
       >
         <XCircle className="h-4 w-4" />
       </button>
+    </div>
+  );
+}
+
+// O motivo do run decide a ênfase: quando o hint manda retomar, "Reprocessar a partir de"
+// é a ação primária e "Tentar novamente" (o run inteiro de novo) recua para outline.
+function FailedRunActions({
+  run,
+  onRetry,
+  onRetryFrom,
+  triggering,
+}: {
+  run: PipelineRunResponse;
+  onRetry: () => void;
+  onRetryFrom?: () => void;
+  triggering: boolean;
+}) {
+  const resumeFirst = prefersResumeFromStage(run.failure_reason);
+  const fromStage = deriveFailedStage(run);
+  return (
+    <div className="mt-4 flex gap-3">
+      <Button size="sm" variant={resumeFirst ? "outline" : "default"} onClick={onRetry} disabled={triggering}>
+        <RefreshCw className="mr-2 h-3.5 w-3.5" />
+        {triggering ? "Iniciando..." : "Tentar novamente"}
+      </Button>
+      {onRetryFrom && fromStage && (
+        <Button size="sm" variant={resumeFirst ? "default" : "outline"} onClick={onRetryFrom} disabled={triggering}>
+          Reprocessar a partir de {stageName(fromStage)}
+        </Button>
+      )}
     </div>
   );
 }
@@ -147,17 +177,12 @@ export function FailedRunCard({
           </div>
         )}
 
-        <div className="mt-4 flex gap-3">
-          <Button size="sm" onClick={onRetry} disabled={triggering}>
-            <RefreshCw className="mr-2 h-3.5 w-3.5" />
-            {triggering ? "Iniciando..." : "Tentar novamente"}
-          </Button>
-          {onRetryFrom && deriveFailedStage(run) && (
-            <Button size="sm" variant="outline" onClick={onRetryFrom} disabled={triggering}>
-              Reprocessar a partir de {stageName(deriveFailedStage(run)!)}
-            </Button>
-          )}
-        </div>
+        <FailedRunActions
+          run={run}
+          onRetry={onRetry}
+          onRetryFrom={onRetryFrom}
+          triggering={triggering}
+        />
       </CardContent>
     </Card>
   );

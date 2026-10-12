@@ -100,7 +100,13 @@ def reason_from_exception(exc: BaseException) -> StageFailureReason:
     import jsonschema
 
     from pipeline.llm.call_hooks import LLMBudgetExceededError
+    from pipeline.run_deadline import is_time_limit
 
+    # Exceção escopada à regra acima (ADR-446): só o marcador de fim de prazo caminha
+    # a cadeia. O litellm o deixa só em `__context__`, e com o sinal disparado o prazo
+    # venceu para o run inteiro — bug dentro do tratamento dele também é fim de prazo.
+    if is_time_limit(exc):
+        return StageFailureReason.timeout
     if isinstance(exc, LLMBudgetExceededError):
         return StageFailureReason.budget_exhausted
     # ADR-284/409 — o abort do flip `warn→strict` chega aqui como

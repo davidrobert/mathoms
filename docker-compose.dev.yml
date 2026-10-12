@@ -9,8 +9,9 @@
 # Logs:     docker compose -f docker-compose.dev.yml logs -f api
 # Derrubar: docker compose -f docker-compose.dev.yml down          (mantém dados)
 #           docker compose -f docker-compose.dev.yml down -v       (wipe DB/Redis)
-# Console interno (frontend-ops, opcional):
-#           docker compose -f docker-compose.dev.yml --profile ops up -d
+# Console interno (api-ops + frontend-ops, opcional; exige o secret e o yaml
+# de operadores — RUNBOOK §7.2):
+#           docker compose -f docker-compose.dev.yml --profile ops up -d --build
 #
 # Vars locais: copie docker-compose.dev.override.yml.example e ajuste; o
 # override real é gitignored. Senhas abaixo são dev-only com default hardcoded
@@ -211,9 +212,64 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  # Backend do console interno (ADR-116): o único service com /admin/* montado —
+  # o `api` do cliente nunca liga a flag. Só com `--profile ops`, sem `ports:`
+  # (alcançável só pela rede do compose, via frontend-ops). Target runtime: as
+  # rotas admin não renderizam PDF. O `build:` repete o do worker de propósito
+  # (`up api-ops` sozinho não acha imagem ausente); os dois blocos têm de
+  # continuar iguais, senão o último build vence a tag em silêncio.
+  # O secret de sessão não tem default: sem ele o entrypoint aborta, e o `up`
+  # do frontend-ops falha com "dependency failed to start". Não é `${VAR:?}`
+  # porque o Compose interpola todo service antes de filtrar o profile — o `:?`
+  # quebraria o `up` de quem não usa ops.
+  api-ops:
+    profiles: ["ops"]
+    image: mathoms-backend:runtime-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    entrypoint: ["bash", "/app/dev/entrypoint.ops.dev.sh"]
+    environment:
+      MATHOMS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-mathoms}:${POSTGRES_PASSWORD:-devpass}@postgres:5432/${POSTGRES_DB:-mathoms}
+      MATHOMS_REDIS_URL: redis://redis-broker:6379/0
+      MATHOMS_REDIS_CACHE_URL: redis://redis-cache:6379/0
+      MATHOMS_SECRET_KEY: ${MATHOMS_SECRET_KEY:-dev-secret-key-not-for-prod-0123456789abcdef}
+      MATHOMS_FERNET_KEY: ${MATHOMS_FERNET_KEY:-03RkjFvWj5Bd2oPYr65XbcZosiu15kPdl8acj9H_OYg=}
+      MATHOMS_LOG_FORMAT: ${MATHOMS_LOG_FORMAT:-plain}
+      MATHOMS_INTERNAL_OPS_UI_ENABLED: "1"
+      MATHOMS_INTERNAL_OPS_SESSION_SECRET: ${MATHOMS_INTERNAL_OPS_SESSION_SECRET:-}
+    volumes:
+      # config/ traz o internal_operators.yaml (gitignored) que o login lê.
+      - ./backend:/app/backend:ro
+      - ./pipeline:/app/pipeline:ro
+      - ./config:/app/config:ro
+      - ./dev:/app/dev:ro
+      # purge/delete de documentos apagam blobs: mesmo storage do api.
+      - mathoms_dev_storage:/app/storage
+    depends_on:
+      # api healthy ⇒ `alembic upgrade head` já rodou (entrypoint.dev.sh).
+      api:
+        condition: service_healthy
+      redis-broker:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    healthcheck:
+      # 401 sem cookie = /admin montado e auth ligada; com a flag desligada a
+      # dependency do router devolve 404. Não usa /health: o inspect do Celery
+      # ali é síncrono e trava o event loop até 2s com o worker fora.
+      test: ["CMD-SHELL", "[ \"$$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/admin/me)\" = 401 ]"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    restart: unless-stopped
+
   # Console interno de operações (ADR-116). Opcional — só sobe com
-  # `--profile ops`. Default aponta para o api da stack; override para host
-  # via MATHOMS_DOCKER_OPS_API_BASE quando rodar o api fora do compose.
+  # `--profile ops`. Default aponta para o api-ops da stack; override para host
+  # via MATHOMS_DOCKER_OPS_API_BASE quando rodar o backend de ops fora do
+  # compose (com `up --no-deps frontend-ops`).
   # É build arg, não env: o rewrite `/admin/*` fica no routes-manifest do
   # `next build`, e a tag `:dev` guarda o último valor — trocar (ou voltar ao
   # default) exige `up --build`. Não lê INTERNAL_OPS_API_BASE do shell: o
@@ -225,10 +281,13 @@ services:
       context: ./frontend-ops
       dockerfile: Dockerfile
       args:
-        INTERNAL_OPS_API_BASE: "${MATHOMS_DOCKER_OPS_API_BASE:-http://api:8000}"
+        INTERNAL_OPS_API_BASE: "${MATHOMS_DOCKER_OPS_API_BASE:-http://api-ops:8000}"
     image: mathoms-frontend-ops:dev
     environment:
       NODE_ENV: production
+    depends_on:
+      api-ops:
+        condition: service_healthy
     ports:
       - "127.0.0.1:${MATHOMS_DOCKER_OPS_PORT:-3110}:3100"
     extra_hosts:

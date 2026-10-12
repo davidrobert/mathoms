@@ -31,6 +31,12 @@ tags:
 > no mesmo PR (`backend/tests/test_run_stage_once.py`). Retrata o item 3 da
 > [[ADR-270]] §Emenda 2026-08-15 e a abertura da [[ADR-357]] §8; deixa sem objeto a
 > guarda de retry da [[ADR-284]] §A e a ressalva de retry da [[ADR-323]] §Consequências.
+>
+> **Emenda 2026-10-09 — uma exceção atravessa o executor: o fim de prazo do run.**
+> `_run_stage` e `_run_stage_once` deixam passar o sinal do soft time limit e o
+> `RunTimeLimitExceededError`: achatados, o loop iniciava o próximo stage depois do
+> prazo. Quem encerra é o loop ([[ADR-446]]). Toda outra exceção do runner segue
+> achatada, e a tentativa continua única.
 
 ## Contexto
 

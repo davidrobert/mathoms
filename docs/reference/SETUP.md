@@ -365,7 +365,7 @@ Para ops API (8001) e frontend-ops (3100), ver [RUNBOOK §7.2](RUNBOOK.md) —
 exige envs extras (`MATHOMS_INTERNAL_OPS_UI_ENABLED=1` etc.) que `make native-up`
 já configura automaticamente.
 
-**Status page (opcional, 7E.6):** crie `frontend/.env.local` com `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL=https://…` para exibir o link **Status e incidentes** no rodapé (login, cadastro, convite e área logada). Ver [RUNBOOK.md](RUNBOOK.md).
+**Status page (opcional, 7E.6):** crie `frontend/.env.local` com `NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL=https://…` para exibir o link **Status e incidentes** no rodapé (login, cadastro, convite e área logada) no `npm run dev`. Na imagem Docker o valor vem do `.env.prod.local` por build-arg — `frontend/.env*` fica fora do contexto de build. Ver [RUNBOOK.md §2.2](RUNBOOK.md).
 
 ---
 

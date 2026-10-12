@@ -109,6 +109,12 @@ def load_operators(*, path: Path | None = None) -> dict[str, InternalOperator]:
     return out
 
 
+def validate_internal_ops_config(*, path: Path | None = None) -> None:
+    """Fail-fast de boot do processo de ops: secret de sessão válido + yaml de operadores legível."""
+    _session_secret()
+    load_operators(path=path)
+
+
 def verify_operator_password(op: InternalOperator, password: str) -> bool:
     try:
         return bcrypt.checkpw(password.encode("utf-8"), op.hashed_password.encode("utf-8"))
@@ -176,6 +182,7 @@ __all__ = [
     "InternalOperator",
     "InternalOpsPrincipal",
     "load_operators",
+    "validate_internal_ops_config",
     "verify_operator_password",
     "create_session_token",
     "decode_session_token",

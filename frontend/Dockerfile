@@ -40,6 +40,11 @@ COPY frontend ./frontend
 # os scripts usam mkdir(parents=True) e essas pastas são descartadas com o builder.
 WORKDIR /app/frontend
 ENV NEXT_TELEMETRY_DISABLED=1
+# NEXT_PUBLIC_* é inlinado no bundle pelo `next build`; env de runtime não o
+# altera. `frontend/.env*` não entra no contexto (.dockerignore), então o valor
+# chega só por build-arg — público por definição, vai para o JS do cliente.
+ARG NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL=""
+ENV NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL=$NEXT_PUBLIC_MATHOMS_STATUS_PAGE_URL
 RUN npm run build
 
 # ---------------------------------------------------------------------------

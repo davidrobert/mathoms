@@ -5,6 +5,7 @@ title: "Report idempotente sob redelivery do Celery — índice único parcial +
 status: Decidido
 phase: "audit-r2 · REL-03"
 date: "2026-06-18"
+amended_at: ["2026-10-09"]
 relates_to:
   - "[[ADR-131]]"
   - "[[ADR-172]]"
@@ -26,6 +27,12 @@ size_lines: 52
 **Status:** Decidido (audit-r2 · REL-03) • **Data:** 2026-06-18 • **Relaciona** [[ADR-131]] (Report→artifact por FK), [[ADR-172]] (heartbeat / crash-recovery)
 
 > Rastreado em [[AUDITS-active]] §r2.
+>
+> **Correção 2026-10-09 — `time_limit` não reentrega.** O §Contexto lista o
+> `time_limit=3600` entre as mortes que reentregam a mensagem. Não reentrega: no hard
+> limit o processo pai faz ack (`task_acks_on_failure_or_timeout` default) e grava
+> `FAILURE`, e o `on_failure` da task não roda. OOM e kill do worker continuam
+> reentregando (`reject_on_worker_lost`). Medido no Celery 5.6.3 ([[ADR-446]]).
 
 ## Contexto
 

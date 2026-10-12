@@ -29,6 +29,7 @@ from sqlalchemy import func, select
 
 from backend.app.core.logging import get_logger
 from pipeline.llm.call_hooks import LLMBudgetExceededError, stage_without_document_suffix
+from pipeline.run_deadline import RunDeadline
 
 if TYPE_CHECKING:
     from pipeline.llm.litellm_client import LLMCallResult
@@ -103,6 +104,9 @@ class LLMBudgetService:
         self._pending: list[_CallLogEntry] = []
         self._pending_lock = threading.Lock()
 
+    # ADR-446: o prazo do run mora aqui porque estes hooks são o canal que todo stage
+    # LLM já recebe; o `LLMService` o lê por `deadline_of`, que trata a ausência
+    # (instância fora de run, como a do drift) como "sem prazo".
     @classmethod
     def for_pipeline_run(
         cls,
@@ -110,10 +114,12 @@ class LLMBudgetService:
         run_id: str,
         *,
         session_factory: Optional[Callable[[], Any]] = None,
+        run_deadline: Optional[RunDeadline] = None,
     ) -> "LLMBudgetService":
         """Hooks de um run do pipeline: adia o ``LLMCallLog`` quando o engine tem writer único."""
         service = cls(workspace_id, pipeline_run_id=run_id, session_factory=session_factory)
         service._defer_call_log = _has_single_writer(service._session_factory)
+        service.run_deadline = run_deadline or RunDeadline()
         return service
 
     # ------------------------------------------------------------------

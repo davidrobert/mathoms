@@ -46,13 +46,13 @@ from pipeline.llm.response_cache import (
     fetch_cached_output,
     record_cache_event,
 )
+from pipeline.llm.run_deadline_guard import deadline_of, guarded_completion, raise_if_time_limit
 
 # Compat: LLMRunSummary morava neste módulo até A20.l11 estourar o teto de
 # 500 linhas (P2); call-sites continuam importando daqui. LLMConfig/
 # LLMCallResult idem (ADR-307).
 from pipeline.llm.run_summary import LLMRunSummary
 from pipeline.llm.service_config import LLMCallResult, LLMConfig
-from pipeline.llm.stream_assemble import completion_via_stream
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +85,7 @@ class LLMService:
     def __init__(self, config: LLMConfig):
         self._config = config
         self._hooks = config.call_hooks
+        self._deadline = deadline_of(config.call_hooks)
         self._response_cache = config.response_cache
         self._metrics = config.metrics_emitter
         self._summary = LLMRunSummary()
@@ -122,7 +123,7 @@ class LLMService:
         logging.getLogger("litellm").setLevel(logging.WARNING)
 
         self._raw_client = litellm
-        self._client = instructor.from_litellm(completion_via_stream)
+        self._client = instructor.from_litellm(guarded_completion(self._deadline))
 
     def test_connection(self) -> dict[str, Any]:
         """Quick connectivity test — delegate de ``pipeline.llm.connection_check`` (P2 A33.l7)."""
@@ -180,6 +181,7 @@ class LLMService:
             LLMError: for non-retryable errors (auth, context_length)
             ValueError: ``use_cache=True`` com ``temperature > 0`` (ADR-307)
         """
+        self._deadline.check("chamada LLM")
         import base64
 
         model = self._get_model_string()
@@ -382,6 +384,7 @@ class LLMService:
                 return result
 
             except Exception as exc:
+                raise_if_time_limit(exc, self._deadline)
                 last_exception = exc
 
                 if is_completion_truncated_max_tokens(exc):

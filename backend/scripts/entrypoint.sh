@@ -9,11 +9,13 @@ case "$ROLE" in
     # Alembic upgrade head é idempotente; em DB já atualizado é no-op.
     # Limitação aceita 7A-dev: race em multi-replica (1 réplica em dev minimal).
     alembic -c backend/alembic.ini upgrade head
+    # --no-proxy-headers: o trust do XFF é do app (MATHOMS_FORWARDED_ALLOW_IPS,
+    # ADR-232 §Emenda 2026-10-09). Com o CLI ligado, `*` trocaria o cliente pelo
+    # hop forjado antes do middleware do app.
     exec uvicorn backend.app.main:app \
       --host 0.0.0.0 \
       --port 8000 \
-      --proxy-headers \
-      --forwarded-allow-ips='*'
+      --no-proxy-headers
     ;;
   worker)
     exec celery -A backend.app.worker worker --loglevel=info --concurrency=2

@@ -33,6 +33,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from backend.app.models.audit_log import AuditLog
+from backend.app.services.security.client_ip import client_ip
 
 
 class AuditAction(str, enum.Enum):
@@ -123,11 +124,7 @@ def client_meta(request: Optional[Request] = None) -> tuple[Optional[str], Optio
     """
     if request is None:
         return None, None
-    # Respeita X-Forwarded-For se presente (Traefik / reverse proxy)
-    fwd = request.headers.get("x-forwarded-for")
-    ip = fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else None)
-    ua = request.headers.get("user-agent")
-    return ip, ua
+    return client_ip(request), request.headers.get("user-agent")
 
 
 # Alias legado — mantido para compat com chamadas internas (audit_log).

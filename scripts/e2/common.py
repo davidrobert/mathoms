@@ -25,8 +25,6 @@ from pipeline.domain.services.money_parsing import parse_valor_monetario
 _DEFAULT_BASE_DIR = _pc._REPO_ROOT
 
 BASE_DIR = _DEFAULT_BASE_DIR
-DATA_DIR = BASE_DIR / "data" / "financial_statements"
-OUTPUT_DIR = BASE_DIR / "processed" / "E2_extracts"
 CONFIG_DIR = BASE_DIR / "config"
 
 
@@ -49,7 +47,7 @@ def _load_json_config(path: Path, label: str = "") -> dict:
 
 def _init_config(base_dir: Path) -> None:
     """(Re)carrega paths e configs a partir de um root_dir."""
-    global BASE_DIR, DATA_DIR, OUTPUT_DIR, CONFIG_DIR
+    global BASE_DIR, CONFIG_DIR
     global FAMILY, MEMBROS, TITULAR_KEY, TITULAR, MEMBER_NAMES, MEMBER_CPFS
     global LOCALE_CONFIG, INST_CONFIG, PIPE_CONFIG
     global MESES_BR_INT, MESES_BR_STR, BANCO_CANONICAL
@@ -60,8 +58,6 @@ def _init_config(base_dir: Path) -> None:
     global MIN_XLS_BYTES, MIN_CSV_BYTES
 
     BASE_DIR = base_dir
-    DATA_DIR = base_dir / "data" / "financial_statements"
-    OUTPUT_DIR = base_dir / "processed" / "E2_extracts"
     CONFIG_DIR = base_dir / "config"
 
     fm_path = CONFIG_DIR / "family_members.json"

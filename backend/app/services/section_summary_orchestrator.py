@@ -1,18 +1,19 @@
 """Section summary orchestrator (v2.9 · ADR-144)."""
 # Wire-up de SectionSummaryGenerator com LLMService (LiteLLM/Instructor)
-# + Redis cache + fallback determinístico. Vive em backend/ porque conhece
-# Anthropic API key (env), Redis client e LLMService com seu setup.
-# pipeline/ permanece boundary-clean.
+# + Redis cache. Vive em backend/ porque conhece Anthropic API key (env),
+# Redis client e LLMService com seu setup. pipeline/ permanece boundary-clean.
+# Sem fallback aqui: seção que falha fica ausente de `section_summaries`, e a
+# precedência da ADR-356 (camadas 2 e 3) decide no renderer.
 
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import os
 from pathlib import Path
 from typing import Any, Mapping, Optional
 
+from backend.app.services.parecer_prose_money import extract_money_tokens, extract_usd_tokens
 from pipeline.domain.services.section_summary_generator import (
     LLMRawResponse,
     PromptTemplate,
@@ -20,6 +21,7 @@ from pipeline.domain.services.section_summary_generator import (
     SectionSummaryGeneratorConfig,
     load_prompt_templates_from_yaml,
     load_prompt_version_from_yaml,
+    serialize_section_payload,
 )
 from pipeline.llm.schemas.section_summaries import SectionSummaryOutput
 
@@ -103,58 +105,11 @@ class _LiteLLMSectionSummaryClient:
         )
 
 
-def _default_fallback(section_id: str, snapshot_data: Mapping[str, Any]) -> Optional[str]:
-    """Fallback determinístico — usa narrativas[summaries] do snapshot se houver."""
-    text = _read_legacy_summary(snapshot_data, section_id)
-    if text:
-        return text
-    return _GENERIC_FALLBACK.get(section_id)
-
-
-# ADR-356 §D2: a chave de `narrativas.summaries` NÃO é `section_id.lower()`.
-# `summaries.s2` é o parágrafo de SCORE e a S2 do layout é Fluxo de Caixa —
-# derivar por lowercase publicava o score no topo do fluxo de caixa. O mapa
-# canônico é `summary_source`, declarado no layout (mesma fonte que o renderer
-# React lê). Seção sem destino declarado cai no fallback genérico.
-def _summary_source_key(section_id: str) -> Optional[str]:
-    from backend.app.generated.report_layout import LAYOUT
-
-    estrategico = LAYOUT.estrategico
-    for entry in [*estrategico.sections, *estrategico.appendices]:
-        if entry.id == section_id:
-            return entry.summary_source if entry.enabled else None
-    return None
-
-
-def _read_legacy_summary(snapshot_data: Mapping[str, Any], section_id: str) -> Optional[str]:
-    if not isinstance(snapshot_data, Mapping):
-        return None
-    narrativas = snapshot_data.get("_narrativas")
-    if not isinstance(narrativas, Mapping):
-        return None
-    summaries = narrativas.get("summaries")
-    key = _summary_source_key(section_id)
-    if not isinstance(summaries, Mapping) or key is None:
-        return None
-    text = summaries.get(key)
-    if isinstance(text, str) and text.strip():
-        return text.strip()
-    return None
-
-
-_GENERIC_FALLBACK: dict[str, str] = {
-    "S1": "Patrimônio consolidado e estrutura de ativos/passivos.",
-    "S2": "Fluxo de caixa e diagnóstico comportamental do período.",
-    "S3": "Carteira de investimentos: alocação atual, alvo e principais ativos.",
-    "S4": "Imóveis e renda passiva — rentabilidade comparada a benchmarks.",
-    "S7": "Independência financeira — projeção de longo prazo.",
-    "S8": "Estrutura tributária e previdenciária — eficiência fiscal.",
-    "S9": "Mapa de riscos e cobertura atual de seguros críticos.",
-    "S10": "Síntese dos pontos fortes e urgências do ciclo.",
-    "T2": "Cobertura da meta de aportes do ciclo.",
-    "T3": "Tributação tática do ciclo.",
-    "T5": "Cenários e simulações considerados.",
-}
+# Detector do parecer, não `\breais\b`: "juros reais" e "ganhos reais" são
+# vocabulário do relatório. Exige número junto de R$/reais/US$/dólares.
+def _cita_valor_monetario(summary_md: str) -> bool:
+    """Prosa com valor monetário — o prompt proíbe (ADR-090)."""
+    return bool(extract_money_tokens([summary_md]) or extract_usd_tokens([summary_md]))
 
 
 def _resolve_yaml_path() -> str:
@@ -192,8 +147,8 @@ def _build_cache():
 
 
 def compute_snapshot_hash(snapshot_data: Mapping[str, Any]) -> str:
-    """Hash determinístico do payload da seção (entra em cache key)."""
-    raw = json.dumps(snapshot_data, sort_keys=True, ensure_ascii=False, default=str)
+    """Hash do payload na serialização que vai ao prompt (entra em cache key)."""
+    raw = serialize_section_payload(snapshot_data)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
@@ -202,14 +157,14 @@ def build_default_generator(
     templates: Optional[Mapping[str, PromptTemplate]] = None,
     config: Optional[SectionSummaryGeneratorConfig] = None,
 ) -> SectionSummaryGenerator:
-    """Construtor padrão — wire LiteLLM + Redis + fallback determinístico."""
+    """Construtor padrão — wire LiteLLM + Redis."""
     yaml_path = _resolve_yaml_path()
     resolved_templates = templates or load_prompt_templates_from_yaml(yaml_path)
     llm_client = _build_llm_client() or _NoLLMRaisingClient()
     return SectionSummaryGenerator(
         llm_client=llm_client,
         cache=_build_cache(),
-        fallback=_default_fallback,
+        cites_money=_cita_valor_monetario,
         templates=resolved_templates,
         config=config
         or SectionSummaryGeneratorConfig(
@@ -220,7 +175,7 @@ def build_default_generator(
 
 
 class _NoLLMRaisingClient:
-    """Stub que sempre levanta — força fallback sem chamada de rede."""
+    """Stub que sempre levanta — seção fica ausente, sem chamada de rede."""
 
     def call(self, *, system_prompt: str, user_prompt: str, section_id: str) -> LLMRawResponse:
         raise RuntimeError("ANTHROPIC_API_KEY missing — section summaries via LLM disabled")
@@ -237,19 +192,17 @@ def generate_all_section_summaries(
         logger.info("section_summaries_skipped_llm_disabled")
         return {}
     gen = generator or build_default_generator()
-    narrativas = e5_data.get("narrativas") if isinstance(e5_data, Mapping) else None
-    return _run_for_all_sections(gen, workspace_id, e5_data, narrativas)
+    return _run_for_all_sections(gen, workspace_id, e5_data)
 
 
 def _run_for_all_sections(
     gen: SectionSummaryGenerator,
     workspace_id: int,
     e5_data: Mapping[str, Any],
-    narrativas: Any,
 ) -> dict[str, str]:
     out: dict[str, str] = {}
     for section_id in SUPPORTED_SECTION_IDS:
-        section_payload = _slice_section_data(e5_data, section_id, narrativas)
+        section_payload = _slice_section_data(e5_data, section_id)
         result = gen.generate(
             section_id=section_id,
             snapshot_hash=compute_snapshot_hash(section_payload),
@@ -261,27 +214,16 @@ def _run_for_all_sections(
     return out
 
 
-def _slice_section_data(
-    e5_data: Mapping[str, Any],
-    section_id: str,
-    narrativas: Any,
-) -> dict[str, Any]:
+def _slice_section_data(e5_data: Mapping[str, Any], section_id: str) -> dict[str, Any]:
     """Filtra E5 snapshot p/ payload mínimo da seção (sem PII redundante)."""
     keys = _SECTION_KEYS.get(section_id, ())
-    payload: dict[str, Any] = {}
-    for key in keys:
-        value = e5_data.get(key)
-        if value is not None:
-            payload[key] = value
-    # Anexa narrativas só para fallback determinístico — generator não loga.
-    if isinstance(narrativas, Mapping):
-        payload["_narrativas"] = {"summaries": narrativas.get("summaries", {})}
-    return payload
+    return {key: e5_data[key] for key in keys if e5_data.get(key) is not None}
 
 
-# Mapa de section_id → keys do E5 que entram no prompt. Não exaustivo —
-# caller (Fase 3) pode estender via parâmetro de override; placeholder
-# Fase 2.
+# Mapa de section_id → keys do E5 que entram no prompt. É o payload inteiro:
+# chave fora daqui não vai ao provider (ADR-144 §Emenda 2026-10-09). Não
+# exaustivo — caller (Fase 3) pode estender via parâmetro de override;
+# placeholder Fase 2.
 _SECTION_KEYS: dict[str, tuple[str, ...]] = {
     "S1": ("patrimonio", "reserva_emergencia", "endividamento"),
     "S2": ("fluxo_caixa", "diagnostico_comportamental"),

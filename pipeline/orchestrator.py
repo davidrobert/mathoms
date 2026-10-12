@@ -63,6 +63,7 @@ class PipelineResult:
 
 
 from pipeline.observability.failure_text import describe_failure
+from pipeline.run_deadline import time_limit_exceptions
 from pipeline.stage_spec import (
     DETERMINISTIC_ORDER,
     FULL_ORDER,
@@ -242,6 +243,9 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                 if resolve_stage_name(stage) in STAGE_REGISTRY
                 else False,
             },
+            # Só o fim de prazo do run propaga para fora do `with`, e a gravação
+            # automática levaria a cadeia crua ao span (ADR-441 D2): ele grava abaixo.
+            record_exception=False,
         )
     else:
         span_cm = nullcontext()
@@ -327,6 +331,14 @@ def _run_stage(ctx: WorkspaceContext, stage: str) -> StageResult:
                     detail=_with_tail(failure_class_detail(StageFailureReason.unknown)),
                     error=error_msg,
                 )
+            except time_limit_exceptions() as exc:
+                # O prazo do run é do executor, não deste stage: achatar aqui fazia o
+                # loop iniciar o próximo stage depois do soft time limit.
+                if span is not None:
+                    span.record_exception(exc, attributes=describe_failure(exc).span_attributes())
+                    span.set_attribute("pipeline.success", False)
+                    span.set_attribute("pipeline.exit_code", 1)
+                raise
             except Exception as exc:
                 elapsed = (time.monotonic() - start) * 1000
                 # `str(exc)` de erro de banco ecoa bound parameters e o DETAIL do

@@ -148,7 +148,8 @@ class TestInitConfig:
         from scripts.e2 import common as e2c
 
         assert e2c.BASE_DIR == tmp_path
-        assert e2c.DATA_DIR == tmp_path / "data" / "financial_statements"
+        # O diretório de extratos é do run (ctx); global copiado por nome congelava o 1º tenant.
+        assert not hasattr(e2c, "DATA_DIR")
 
         # _init_config(_REPO_ROOT) removido em A7.5 (ver fixture cli_stub_root).
 

@@ -27,6 +27,8 @@ import {
   institutionLabel,
   pipelineE2TouchLabel,
   pipelineTouchTooltipExplanation,
+  formatBRLAxisTick,
+  formatBRLDataLabel,
   formatBRLDecimalString,
   formatBRLNoCents,
   formatBytes,
@@ -256,15 +258,51 @@ describe("formatDelta()", () => {
 // ─── formatCompact ───────────────────────────────────────────────────
 
 describe("formatCompact()", () => {
-  it("formato compact mil → mil/k abreviado", () => {
-    const out = norm(formatCompact(12_500));
-    // Intl pode usar "R$ 12,5 mil" pt-BR
-    expect(out).toMatch(/R\$/);
+  it("abrevia com mil, nunca com k (COPY_GUIDELINES §4.2)", () => {
+    expect(norm(formatCompact(12_500))).toBe("R$ 12,5 mil");
   });
 
   it("milhão", () => {
-    const out = norm(formatCompact(1_500_000));
-    expect(out).toMatch(/R\$/);
+    expect(norm(formatCompact(1_500_000))).toBe("R$ 1,5 mi");
+  });
+});
+
+// ─── formatBRLDataLabel / formatBRLAxisTick ──────────────────────────
+// COPY_GUIDELINES §4.2 — rótulo de dado: compact em toda faixa, casa só abaixo
+// de 10. Eixo: valor completo, compact só quando a escala chega a milhões.
+
+describe("formatBRLDataLabel()", () => {
+  it.each([
+    [4_567, "R$ 4,6 mil"],
+    [12_500, "R$ 13 mil"],
+    [123_456, "R$ 123 mil"],
+    [1_234_567, "R$ 1,2 mi"],
+    [-13_000, "-R$ 13 mil"],
+  ])("%d → %s", (valor, esperado) => {
+    expect(norm(formatBRLDataLabel(valor))).toBe(esperado);
+  });
+});
+
+describe("formatBRLAxisTick()", () => {
+  it("escala abaixo de milhão: valor completo sem centavos", () => {
+    const escala = [0, 500, 1_000, 1_500, 2_000];
+    expect(escala.map((v) => norm(formatBRLAxisTick(v, escala)))).toEqual([
+      "R$ 0",
+      "R$ 500",
+      "R$ 1.000",
+      "R$ 1.500",
+      "R$ 2.000",
+    ]);
+  });
+
+  it("escala que chega a milhões: compact em todos os ticks", () => {
+    const escala = [0, 500_000, 1_000_000, 1_500_000];
+    expect(escala.map((v) => norm(formatBRLAxisTick(v, escala)))).toEqual([
+      "R$ 0",
+      "R$ 500 mil",
+      "R$ 1 mi",
+      "R$ 1,5 mi",
+    ]);
   });
 });
 

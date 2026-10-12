@@ -131,6 +131,8 @@ Quando uma decisão terminológica nova surgir, adicione linha aqui com
 | **Fluxo líquido após aportes** `@2026-10-09` | Receitas menos **saídas (inclui aportes)**: a identidade de caixa do `fluxo_liquido` ([[ADR-333]]). O "após aportes" é obrigatório, porque quem poupa muito tem líquido perto de zero ou negativo e, sem o rótulo, leria "não poupei" ao lado da taxa de poupança | minúsculo em corpo; "Fluxo líquido após aportes:" em rótulo | — | `fluxo líquido` **sem** "após aportes" quando as saídas incluem o aporte; `sobra` / `quanto sobra` (o "quanto sobra" do relatório é a folga mensal do Consumo Consciente, outra base) |
 | **Rebalanceamento por aporte** `@2026-10-09` | Correção do desvio da carteira contra a alocação-alvo pelos novos aportes, sem venda: o aporte vai para a classe mais abaixo do alvo (`goals.alocacao_alvo.derived.next_aporte_classe`). É o método de alocação que o relatório aplica — pilar do Apêndice B, verbete do glossário, rodapé do card Atual vs Alvo | minúsculo em corpo; sentence case em título ("Alocação por classe e rebalanceamento por aporte") | — | `alocação contracíclica` e `estratégia adaptativa à curva de juros` (retirados no §2 — método sem produtor); `rebalancear vendendo` (o mecanismo é o aporte); `otimização de classes` (o produto compara com o alvo declarado, não otimiza) |
 | **Nu-propriedade** `@2026-08-30` | Imóvel em que o cliente é nu-proprietário e um terceiro detém usufruto vitalício ([[ADR-235]]). A copy declara **duas** coisas: não gera caixa nem é vendável livremente, **e** o número na tela é o custo descontado pelo usufruto, não o valor de um imóvel livre. A negação fecha a frase, e **sem quantificador** — o produto não estima o valor pleno ([[ADR-235]] §Alternativas B: *"precisão falsa custa mais que silêncio honesto"*) | minúsculo em corpo | "propriedade plena"; "quando o usufruto terminar" | `consolidação` / `consolidar` (mesma colisão já registrada na linha acima — "consolidação do imóvel" ao lado de "relatório consolidado" lê como agregação de dado, não como evento jurídico); `valorização`, `ganho futuro`, `salto patrimonial`, `vale hoje X` (abrem o erro inverso — o leitor superestima o patrimônio, que contamina score, meta de IF e aporte, enquanto subestimar um imóvel ilíquido não contamina quase nada); adjetivo de magnitude ("bem menor", "significativamente") é tábua atuarial disfarçada de prosa |
+| **Ponto urgente** `@2026-10-09` | Item que o E5 ranqueou em `pontos_urgentes` (reserva, endividamento, seguro de vida, concentração imobiliária, rentabilidade não medida). O card "Pontos Urgentes" do S10 e o sinal do summary fechado da "Análise Financeira" no `/plano` contam o mesmo número. A prioridade declarada pelo produtor vai no **texto**, não só no tom: o tom crítico acende só com prioridade alta, e prioridade desconhecida conta como alta | "Ponto Urgente" em título de card; minúsculo em corpo e no sinal ("1 ponto urgente", "1 ponto urgente de prioridade alta", "4 pontos urgentes, 3 de prioridade alta") | — | `imediato` / `ação imediata` como qualificador do conjunto (a concentração imobiliária de prioridade alta tem prazo "Próximo trimestre" e é direcional via aporte, [[ADR-340]]); `alerta` (é o nome que o aviso abaixo deixou de usar); `crítico` em copy (é o nome do tom, não do item) |
+| **Aviso** `@2026-10-09` | Ressalva sobre a **qualidade da medição** do E5 (`alertas`): rentabilidade N/D, TRS suspeita ([[ADR-191]]), classificação de ativos ([[ADR-193]]). Não é risco da família: fica fora da contagem do sinal do summary e vem depois dos pontos urgentes, em tom neutro | "Aviso" em título de card; minúsculo em corpo | — | `alerta` (promete risco, e o conteúdo é medição); tom âmbar ou vermelho (um âmbar que aparece todo mês gasta a atenção de que o ponto urgente precisa) |
 
 ---
 
@@ -208,6 +210,19 @@ Ranges em compact: travessão `—` (não hífen). `R$ 1 mi — R$ 5 mi`.
 **Não** abreviar com `R$ 1k–10k` — `k` quebra leitura em PT-BR e
 mistura sistemas. Use `mil` / `mi` / `bi`.
 
+**Em gráfico**, a forma segue o papel do número, não a faixa da tabela acima:
+
+| Papel | Forma | Exemplo | Helper (`@/lib/format`) |
+| --- | --- | --- | --- |
+| Eixo monetário | Completa sem centavos; compact se a escala chega a milhões | `R$ 20.000` · `R$ 1,5 mi` | `formatBRLAxisTick` |
+| Rótulo de dado (fatia, barra) | Compact em toda faixa, decimal só abaixo de 10 | `R$ 4,6 mil` · `R$ 23 mil` · `R$ 1,2 mi` | `formatBRLDataLabel` |
+
+`R$` em todo tick, e um eixo não mistura formas: compacta todos os ticks ou
+nenhum. No eixo, o compact não economiza largura nesta faixa (`R$ 120 mil` e
+`R$ 120.000` têm o mesmo tamanho). O rótulo de dado disputa espaço com a fatia,
+por isso dispensa a casa que o §4.5 dá ao compact; o valor completo fica no
+tooltip.
+
 ### 4.3 Zero vs. dado ausente (regra crítica em fintech)
 
 - **Zero real** → `R$ 0,00` (preto/cinza neutro, NÃO em verde/vermelho).
@@ -230,7 +245,9 @@ quando o dado simplesmente não foi capturado.
 
 - Em **dado bruto** (transação, fatura, extrato): preservar centavos.
 - Em **agregados** (KPI, card de síntese): half-up para 2 decimais.
-- Em **compact** (`mi`, `mil`): 1 decimal (`R$ 4,2 mi`).
+- Em **compact** (`mi`, `mil`): 1 decimal (`R$ 4,2 mi`). Exceção: o rótulo
+  de dado de gráfico arredonda a 2 dígitos significativos (§4.2) —
+  `R$ 123 mil`, não `R$ 123,5 mil`.
 - **Nunca** usar `float` para arredondar (ADR-090) — `Money.brl()` /
   `Decimal`. Arredondamento é responsabilidade do backend; UI apenas
   formata.

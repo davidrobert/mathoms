@@ -5,7 +5,7 @@ title: "Criticidade de stage e degradação do run — add-on advisory não veta
 status: Decidido
 phase: "A40.l18"
 date: "2026-08-03"
-amended_at: ["2026-08-07", "2026-10-08"]
+amended_at: ["2026-08-07", "2026-10-08", "2026-10-09"]
 relates_to:
   - "[[ADR-199]]"
   - "[[ADR-131]]"
@@ -46,6 +46,13 @@ tags:
 > ao retry. Não chegava, em stage nenhum: o retry de stage nunca operou in-process e
 > foi apagado. Continua de pé: degradável não retenta dentro do run, e retomar é run
 > novo com `from_stage`.
+>
+> **Emenda 2026-10-09 — parada por prazo do run ([[ADR-446]]).** Depois do soft time
+> limit nenhum stage começa: a parada é do **decisor** (o loop), como o cancel, e não lê
+> `reason_class` — o invariante paramétrico da §2 fica intacto. Os stages que o prazo
+> deixou sem rodar viram não-entrega pela própria criticidade, e o desfecho segue a §5:
+> `partial_failure` com E5 alcançável, `failed` sem ele. `failure_reason=time_limit_exceeded`
+> só acompanha `failed` (§3).
 
 ## Contexto
 

@@ -1,0 +1,65 @@
+{
+  "sem_alerta": [],
+  "so_aviso": [
+    {
+      "kind": "aviso",
+      "severity": "warning",
+      "title": "Aviso",
+      "message": "TRS efetiva 14.20% a.a. acima do plausível para yield de carteira — revisar composição das fontes de renda passiva e do patrimônio gerador antes de usar o número."
+    }
+  ],
+  "so_media": [
+    {
+      "kind": "ponto_urgente",
+      "severity": "warning",
+      "title": "Ponto Urgente",
+      "message": "Consolidar dados de rentabilidade dos investimentos — Sem dados de performance, impossível otimizar alocação (Próximo trimestre)"
+    },
+    {
+      "kind": "aviso",
+      "severity": "warning",
+      "title": "Aviso",
+      "message": "Rentabilidade: N/D"
+    }
+  ],
+  "com_alta": [
+    {
+      "kind": "ponto_urgente",
+      "severity": "critical",
+      "title": "Ponto Urgente",
+      "message": "Contratar seguro de vida e invalidez — Proteção patrimonial da família — nenhuma apólice identificada (Imediato)"
+    }
+  ],
+  "misto": [
+    {
+      "kind": "ponto_urgente",
+      "severity": "critical",
+      "title": "Ponto Urgente",
+      "message": "Reforçar reserva de emergência — Cobertura atual de 2 meses — abaixo do mínimo de 6 (Imediato)"
+    },
+    {
+      "kind": "ponto_urgente",
+      "severity": "critical",
+      "title": "Ponto Urgente",
+      "message": "Reduzir endividamento — Taxa de endividamento em 35% — meta < 20% (Próximo trimestre)"
+    },
+    {
+      "kind": "ponto_urgente",
+      "severity": "critical",
+      "title": "Ponto Urgente",
+      "message": "Contratar seguro de vida e invalidez — Proteção patrimonial da família — nenhuma apólice identificada (Imediato)"
+    },
+    {
+      "kind": "ponto_urgente",
+      "severity": "warning",
+      "title": "Ponto Urgente",
+      "message": "Consolidar dados de rentabilidade dos investimentos — Sem dados de performance, impossível otimizar alocação (Próximo trimestre)"
+    },
+    {
+      "kind": "aviso",
+      "severity": "warning",
+      "title": "Aviso",
+      "message": "Rentabilidade: N/D"
+    }
+  ]
+}

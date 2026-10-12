@@ -5,7 +5,8 @@ title: "`section_summaries` LLM-driven em E5 com cache + fallback determinístic
 status: Decidido
 phase: "Fase 1 — fundação arquitetural; implementação em Fase 2 sob lane v2.9"
 date: "2026-04-27"
-relates_to: ["[[ADR-024]]", "[[ADR-025]]", "[[ADR-090]]", "[[ADR-097]]", "[[ADR-105]]", "[[ADR-110]]", "[[ADR-111]]", "[[ADR-122]]", "[[ADR-127]]", "[[ADR-128]]", "[[ADR-132]]"]
+amended_at: ["2026-10-09"]
+relates_to: ["[[ADR-024]]", "[[ADR-025]]", "[[ADR-090]]", "[[ADR-097]]", "[[ADR-105]]", "[[ADR-110]]", "[[ADR-111]]", "[[ADR-122]]", "[[ADR-127]]", "[[ADR-128]]", "[[ADR-132]]", "[[ADR-143]]", "[[ADR-173]]", "[[ADR-233]]", "[[ADR-332]]", "[[ADR-356]]"]
 supersedes: ["[[ADR-122]]"]
 superseded_by: []
 aliases: ["ADR 144"]
@@ -21,6 +22,12 @@ size_lines: 109
 # ADR-144 — `section_summaries` LLM-driven em E5 com cache + fallback determinístico (v2.9)
 
 **Status:** Decidido (Fase 1 — fundação arquitetural; implementação em Fase 2 sob lane v2.9) • **Data:** 2026-04-27
+
+> ⚠️ **Emendada em 2026-10-09: payload, saída e falha mudam.** O prompt recebe só o slice
+> declarado da seção. A saída fica só com `summary_md`: `tone` e `key_metric_ref` saem do §1.
+> A falha deixa a seção ausente em vez de gravar fallback: o §3 não vale mais no backend.
+> Leia a §Emenda 2026-10-09 antes de citar os §1–§3 ou de ligar
+> `MATHOMS_LLM_SECTION_SUMMARIES`.
 
 **Supersedes (parcial):** parte LLM de [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm) — o desenho híbrido continua válido (chart_conclusions determinístico, section_summaries LLM), mas ADR-122 foi escrita antes de ADR-111 (stateless rigoroso) consolidar e antes de ADR-127/128 fixarem o contrato `ArtifactStore` para LLM stages. ADR-144 fecha as lacunas operacionais de cache, fallback, telemetry e diferenciação cache-runtime vs ArtifactStore.
 
@@ -125,3 +132,71 @@ Com cache hit ratio esperado de ~60 % (usuário reabre relatório no mesmo dia, 
 **Gate de Fase 2**: goldens verdes + custo telemetrado + ADR-144 mergeada em `main`.
 
 **Relaciona-se a:** [ADR-024 LiteLLM], [ADR-025 BYOK], [ADR-090](#adr-090--decimal-para-valores-monetários), [ADR-097](#adr-097--extract-then-refactor-estratégia-de-decomposição-de-e3_reconcilepy), [ADR-105](#adr-105--llm-stages-escrevem-via-artifactstore-e1-e-e7-review-llm-não-migram-a6a), [ADR-110](#adr-110--structured-json-logging--opentelemetry-bootstrap-a6f3), [ADR-111](#adr-111--stateless-rigoroso-padrão-e-gate-empírico-a6f6), [ADR-122](#adr-122--chart_conclusions-e-section_summaries-em-modo-híbrido-template--llm), [ADR-127](#adr-127--e1-members-persiste-via-artifactstore), [ADR-128](#adr-128--e7-review-llm-lêescreve-via-artifactstore), [ADR-132](#adr-132--lifecycle-scoping-de-pipeline_artifacts-workspace-vs-run). Lane operacional: [`docs/agent_prompts/track_report_v2.md` §3 v2.9](../plan/REPORT_PREMIUM/_README.md).
+
+## Emenda 2026-10-09 — o payload é o slice, a saída é `summary_md`, a falha é ausência
+
+Achados do prompt-engineer no PR #2206, decididos em co-design com o sre-devops. A flag
+segue OFF. É emenda e não ADR nova porque o contrato emendado é o dos §1–§3, e um
+leitor do §1 sem esta seção veria campos que não existem.
+
+**E1 — O payload é o slice declarado e nada mais (corrige o §2).** O orquestrador anexava
+`_narrativas` (as narrativas do relatório inteiro, com valores em R$) ao payload de toda
+seção, e o generator serializa o payload inteiro no user prompt. O único leitor era o
+fallback. Agora o prompt leva só as chaves de `_SECTION_KEYS[sid]`, e prompt e hash saem
+da mesma serialização (`serialize_section_payload`). A chave passa a ser
+`v{version}:{model}:{schema_fingerprint}:{workspace_id}:{snapshot_hash}:{section_id}`.
+Ela cobre o modelo e o schema de saída: no Mode.TOOLS o schema vai ao modelo, e o gate de
+bump não o vê.
+
+**E2 — O backend não tem fallback (revoga o §3 no backend).** Pela [[ADR-356]], o texto
+em `section_summaries[ID]` é a camada 1 e vence as camadas 2 e 3. O fallback gravava ali a
+cópia do E5.N, rotulada `llm` e sem o sufixo da §D10, ou um genérico que mascarava o
+`deriveSectionSummary`. Agora toda falha devolve texto vazio e a seção fica ausente: o
+renderer decide. Contam como falha: provider, timeout, schema, `template_missing`,
+`empty_slice` (slice vazio não chama o LLM) e `monetary_inline`. Na [[ADR-356]] §D2 deixa
+de valer a frase sobre `_read_legacy_summary` e o "fallback genérico".
+
+**E3 — A saída é só `summary_md` (corrige o §1).** `tone` e `key_metric_ref` saem do
+schema, por quatro motivos:
+- não tinham leitor (o wire é `{ID: string}`);
+- 14 das 17 refs citadas nos prompts não existiam no E5;
+- o `key_metric_ref` contradizia "sem repetir números do cabeçalho";
+- os critérios de tom eram cópia em prosa de limiares de domínio ([[ADR-143]]), e a
+  [[ADR-356]] §D3 já fixa o visual por origem do texto.
+
+Reintroduzir algum deles exige leitor nas três camadas, não classificação do LLM. O §1
+também erra no `seed`: ele é constante (`SUMMARY_SEED`), não por seção, e o LiteLLM o
+descarta na Anthropic (`drop_params`).
+
+**E4 — Guarda monetária (corrige o §1).** O validator Pydantic que o §1 prometia nunca
+existiu, e sem `key_metric_ref` o prompt não oferece alternativa ao R$.
+- O generator descarta prosa com valor, usando o detector do parecer
+  (`parecer_prose_money`). O descarte sai com `error_class="monetary_inline"` e com os
+  tokens contados.
+- É pós-check e não reask: o retry do Instructor não chega à telemetria e custa até 3×.
+
+**E5 — Versão.** O prompt vai a `2.0.0` ([[ADR-233]]: o schema de saída mudou).
+
+**Pré-condições para ligar a flag** (esta emenda não resolve nenhuma):
+1. **Hooks:** o cliente nasce sem `call_hooks`. Não há `LLMCallLog` nem `check_budget`
+   ([[ADR-173]]), e o cap do §5 não tem efeito.
+2. **Chave por tenant:** `_resolve_workspace_id` resolve workspace UUID para `0`. Hoje a
+   chave só é segura porque cobre todo o input variável do prompt.
+3. **Nome no slice:** `patrimonio.composicao[].categoria`, labels de `fluxo_caixa` e
+   `investimentos.top_ativos[].membro` podem levar nome. Pela [[ADR-332]],
+   `sanitize_e5_for_parecer` precisa rodar antes da serialização.
+4. **Slice × prompt:** S4, S7, S8 e S9 pedem dado que o slice não traz; `real_estate` e
+   `tributario` entram no E5 depois do hook. T2, T3 e T5 não têm render site.
+5. **Eval:**
+   - 4 fixtures sintéticas × 8 seções renderizadas = 32 casos, com snapshot datado do
+     modelo (`claude-haiku-4-5` é alias);
+   - 0 `monetary_inline`, e 100% dos números do texto presentes no slice;
+   - ≤280 caracteres em ≥95% dos casos, 0 markdown e 0 sentinela de PII ([[ADR-356]] §D9);
+   - ≥90% de texto idêntico em 2 rodadas;
+   - `tokens_in` médio e rubrica editorial humana.
+
+**Exposição.** Com a flag OFF por default, nada saiu. Nenhum compose versionado nem o
+`.env` local de dogfood declara a flag. O env injetado fora do repo não foi verificado, e
+o E5 é cifrado em repouso em `pipeline_artifacts`, então a prova por artefato exige
+decifrar. Foi desvio de minimização, não acesso indevido: mesmo operador e mesma
+finalidade.

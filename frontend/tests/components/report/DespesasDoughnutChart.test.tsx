@@ -15,11 +15,14 @@ import { DespesasDoughnutChart } from "@/components/report/charts/DespesasDoughn
 import type { FluxoCaixaSummary } from "@/types/report-analysis";
 import { PERCENTUAL_COM_PONTO } from "../../shared/percentualPtBr";
 
+const chartProps = vi.hoisted((): { options?: unknown } => ({}));
+
 // react-chartjs-2 quebra em jsdom sem pkg `canvas`. Mock com div + label
 // dump para introspeção do conteúdo das fatias.
 vi.mock("react-chartjs-2", () => ({
   Chart: ({
     data,
+    options,
   }: {
     data: {
       labels?: readonly string[];
@@ -28,7 +31,9 @@ vi.mock("react-chartjs-2", () => ({
         backgroundColor?: readonly string[] | string;
       }[];
     };
+    options?: unknown;
   }) => {
+    chartProps.options = options;
     const ds = data.datasets[0];
     const bgArr = Array.isArray(ds?.backgroundColor)
       ? (ds!.backgroundColor as readonly string[])
@@ -64,6 +69,17 @@ const FLUXO_AGGREGATE_ONLY: FluxoCaixaSummary = {
   },
 };
 
+/** Ordens de grandeza do datalabel: mi, centenas de mil e as duas fatias < 5%
+ * — só a de "não identificado" mantém rótulo (A28.l9). */
+const FLUXO_ESCALA_DATALABEL: FluxoCaixaSummary = {
+  despesas_por_categoria: {
+    moradia: 1_234_567,
+    alimentacao: 123_456,
+    transporte: 4_000,
+    nao_identificado: 4_567,
+  },
+};
+
 function getSlices(): Record<string, number> {
   const out: Record<string, number> = {};
   for (const el of document.querySelectorAll("[data-slice]")) {
@@ -71,6 +87,36 @@ function getSlices(): Record<string, number> {
     out[k] = Number(el.getAttribute("data-value") ?? "0");
   }
   return out;
+}
+
+interface DatalabelContext {
+  readonly dataset: { readonly data: readonly number[] };
+  readonly dataIndex: number;
+  readonly chart: { readonly data: { readonly labels: readonly string[] } };
+}
+
+interface DatalabelOptions {
+  readonly plugins: {
+    readonly datalabels: {
+      readonly formatter: (value: number, ctx: DatalabelContext) => string;
+    };
+  };
+}
+
+/** Rótulo desenhado em cada fatia — chama o `formatter` do plugin como o
+ * Chart.js chama, com o dataset inteiro no contexto (é dele que sai o pct). */
+function getDatalabels(): Record<string, string> {
+  const slices = getSlices();
+  const labels = Object.keys(slices);
+  const dataset = { data: Object.values(slices) };
+  const { formatter } = (chartProps.options as DatalabelOptions).plugins.datalabels;
+  return Object.fromEntries(
+    labels.map((label, dataIndex) => [
+      label,
+      formatter(dataset.data[dataIndex], { dataset, dataIndex, chart: { data: { labels } } })
+        .replace(/\u00a0/g, " "),
+    ]),
+  );
 }
 
 describe("<DespesasDoughnutChart />", () => {
@@ -217,6 +263,20 @@ describe("<DespesasDoughnutChart />", () => {
     expect(slices["Moradia"]).toBe(1000);
     expect(slices["Alimentação"]).toBe(500);
     expect(slices["Transporte"]).toBe(200);
+  });
+
+  // COPY_GUIDELINES §4.2 — o rótulo da fatia era `R$ ${(v / 1000).toFixed(0)}k`:
+  // `k` é proibido em copy pt-BR, e 1,2 mi saía "R$ 1235k". A forma é a do
+  // rótulo de dado (2 dígitos significativos): "R$ 123 mil" cabe no anel,
+  // "R$ 123,5 mil" vazava.
+  it("datalabel abrevia BRL com mil/mi, nunca com k", () => {
+    render(<DespesasDoughnutChart fluxo={FLUXO_ESCALA_DATALABEL} />);
+    expect(getDatalabels()).toEqual({
+      Moradia: "R$ 1,2 mi",
+      Alimentação: "R$ 123 mil",
+      "Não identificado": "R$ 4,6 mil",
+      Transporte: "",
+    });
   });
 
   // Regressão: cores de cada fatia precisam vir resolvidas (hex/rgb) —

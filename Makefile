@@ -398,7 +398,7 @@ smoke-up: smoke-dirs
 	 MATHOMS_REDIS_URL="redis://localhost:$(MATHOMS_SMOKE_REDIS_PORT)/0" \
 	 MATHOMS_FERNET_KEY="$$FERNET_KEY" \
 	 nohup $(VENV)/uvicorn backend.app.main:app \
-	   --host 0.0.0.0 --port $(PORT_API) --reload \
+	   --host 0.0.0.0 --port $(PORT_API) --reload --no-proxy-headers \
 	   > $(CURDIR)/$(SMOKE_DIR)/api.log 2>&1 & echo $$! > $(CURDIR)/$(SMOKE_DIR)/api.pid; \
 	 echo "$$FERNET_KEY" > $(CURDIR)/$(SMOKE_DIR)/fernet.key
 	@echo "▶  Starting Celery worker…"
@@ -709,7 +709,7 @@ dev-api-up: dev-dirs
 	@echo "▶  Subindo API principal (porta $(PORT_API))…"
 	$(call check_port_free,$(PORT_API))
 	@MATHOMS_BUILD_SHA=$(BUILD_SHA) nohup $(VENV)/uvicorn backend.app.main:app \
-	   --host 127.0.0.1 --port $(PORT_API) --reload \
+	   --host 127.0.0.1 --port $(PORT_API) --reload --no-proxy-headers \
 	   > $(CURDIR)/$(DEV_DIR)/api.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/api.pid
 
 # Gate de paridade Tier-1 (A40.l24): `LLM_FREE=1` apaga ANTHROPIC_API_KEY do env
@@ -753,7 +753,7 @@ dev-ops-api-up: dev-dirs
 	 MATHOMS_INTERNAL_OPS_SESSION_SECRET="$$OPS_SECRET" \
 	 MATHOMS_BUILD_SHA=$(BUILD_SHA) \
 	 nohup $(VENV)/uvicorn backend.app.main:app \
-	   --host 127.0.0.1 --port $(PORT_OPS_API) --reload \
+	   --host 127.0.0.1 --port $(PORT_OPS_API) --reload --no-proxy-headers \
 	   > $(CURDIR)/$(DEV_DIR)/ops-api.log 2>&1 & echo $$! > $(CURDIR)/$(DEV_DIR)/ops-api.pid
 
 dev-frontend-ops-up: dev-dirs

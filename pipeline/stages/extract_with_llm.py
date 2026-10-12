@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -15,6 +15,8 @@ from pipeline.llm.deterministic_extraction import (
     EXTRACTION_SEED,
     EXTRACTION_TEMPERATURE,
 )
+from pipeline.run_deadline import time_limit_exceptions
+from pipeline.stage_thread_pool import cancelling_thread_pool
 
 if TYPE_CHECKING:
     from pipeline.context import WorkspaceContext
@@ -352,6 +354,10 @@ def _persist_e2_llm_write(
         # DBArtifactStore.write (SCHEMA_BY_STAGE mapeia "extract_with_llm" →
         # "e2_llm_artifact.schema.json", contrato dedicado da ADR-286).
         store.write("extract_with_llm", pending.key, pending.payload)
+    except time_limit_exceptions():
+        # Roda na thread principal, onde o soft time limit estoura: virar erro do
+        # documento deixaria o `as_completed` seguir e o pool drenar a fila (ADR-446).
+        raise
     except Exception as exc:
         logger.error("E2-llm: failed for %s: %s", entry["file"], exc)
         return None, {"file": entry["file"], "error": str(exc)[:300]}
@@ -634,7 +640,7 @@ def run(ctx: WorkspaceContext) -> dict:
     # autoflush e unit of work das threads se intercalavam na mesma conexão
     # (artefato perdido, erro fantasma, Session em estado ilegal no commit). O
     # pool fica com extração + LLM, onde está a latência; o write roda aqui.
-    with ThreadPoolExecutor(max_workers=workers) as pool:
+    with cancelling_thread_pool(workers) as pool:
         futures = [
             pool.submit(
                 _process_one_e2_llm_document,

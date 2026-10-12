@@ -75,7 +75,12 @@ export function ChartBar({
         x: {
           stacked,
           grid: { color: theme.grid, display: !horizontal },
-          ticks: { color: theme.textMuted },
+          ticks: {
+            color: theme.textMuted,
+            // horizontal: X é eixo de valor — formata como moeda. O default do
+            // Chart.js escreve o número no locale do navegador e sem `R$`.
+            ...(horizontal ? { callback: (v: number | string) => formatValue(Number(v)) } : {}),
+          },
         },
         y: {
           stacked,

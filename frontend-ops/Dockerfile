@@ -14,9 +14,10 @@ RUN npm ci --no-audit --no-fund
 FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS builder
 WORKDIR /app
 # O rewrite `/admin/*` do next.config.ts é resolvido no `next build` e fica no
-# routes-manifest; env de runtime não o altera. Default = api da rede do compose
-# (127.0.0.1:8001, o default do next.config, não existe dentro de um container).
-ARG INTERNAL_OPS_API_BASE=http://api:8000
+# routes-manifest; env de runtime não o altera. Default = api-ops da rede do
+# compose, o único service com /admin montado (127.0.0.1:8001, o default do
+# next.config, não existe dentro de um container).
+ARG INTERNAL_OPS_API_BASE=http://api-ops:8000
 ENV INTERNAL_OPS_API_BASE=$INTERNAL_OPS_API_BASE
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

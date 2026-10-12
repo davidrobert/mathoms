@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import re
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
-from typing import Any
+from typing import Any, Literal
 
 from backend.app.schemas.dashboard import DashboardAlert, DashboardChart, DashboardKPI
 from backend.app.services.storage.artifact_reader import read_latest_artifact
@@ -178,39 +178,48 @@ def _bar_data_por_classe(tabela_classes: list[dict[str, Any]]) -> dict[str, Any]
     }
 
 
+# Valor desconhecido conta como alta: o ponto urgente só sai do vermelho quando o
+# produtor declara a prioridade abaixo de alta, nunca por falta de declaração.
+_PRIORIDADES_SEM_TOM_CRITICO = frozenset({"média", "media", "baixa"})
+
+
 def build_alerts(e5: dict[str, Any]) -> list[DashboardAlert]:
-    alerts: list[DashboardAlert] = []
+    """Pontos urgentes na ordem do E5 (a do S10), depois os avisos de qualidade de dado."""
+    urgentes = [_ponto_urgente_alert(ponto) for ponto in e5.get("pontos_urgentes", [])]
+    avisos = [
+        DashboardAlert(kind="aviso", severity="warning", title="Aviso", message=msg)
+        for msg in e5.get("alertas", [])
+    ]
+    return urgentes + avisos
 
-    for alerta_msg in e5.get("alertas", []):
-        alerts.append(
-            DashboardAlert(
-                severity="warning",
-                title="Alerta",
-                message=alerta_msg,
-            )
+
+def _ponto_urgente_alert(ponto: Any) -> DashboardAlert:
+    if not isinstance(ponto, dict):
+        return DashboardAlert(
+            kind="ponto_urgente", severity="critical", title="Ponto Urgente", message=str(ponto)
         )
+    return DashboardAlert(
+        kind="ponto_urgente",
+        severity=_severidade_do_ponto(ponto.get("prioridade")),
+        title="Ponto Urgente",
+        message=_mensagem_do_ponto(ponto),
+    )
 
-    for ponto in e5.get("pontos_urgentes", []):
-        if isinstance(ponto, dict):
-            acao = ponto.get("acao", "")
-            impacto = ponto.get("impacto", "")
-            prazo = ponto.get("prazo", "")
-            msg = acao
-            if impacto:
-                msg += f" — {impacto}"
-            if prazo:
-                msg += f" ({prazo})"
-        else:
-            msg = str(ponto)
-        alerts.append(
-            DashboardAlert(
-                severity="critical",
-                title="Ponto Urgente",
-                message=msg,
-            )
-        )
 
-    return alerts
+def _mensagem_do_ponto(ponto: dict[str, Any]) -> str:
+    msg = ponto.get("acao", "")
+    impacto = ponto.get("impacto", "")
+    prazo = ponto.get("prazo", "")
+    if impacto:
+        msg += f" — {impacto}"
+    if prazo:
+        msg += f" ({prazo})"
+    return msg
+
+
+def _severidade_do_ponto(prioridade: Any) -> Literal["critical", "warning"]:
+    chave = str(prioridade or "").strip().lower()
+    return "warning" if chave in _PRIORIDADES_SEM_TOM_CRITICO else "critical"
 
 
 def get_data_freshness(e5: dict[str, Any]) -> str | None:

@@ -70,10 +70,12 @@ vi.mock("react-chartjs-2", () => {
 });
 
 /** Default workspace para páginas `(app)/` que usam `useWorkspace()` sem provider real. */
-vi.mock("@/lib/WorkspaceProvider", () => ({
-  WorkspaceProvider: ({ children }: { children: ReactNode }) =>
-    createElement(Fragment, null, children),
-  useWorkspace: () => ({
+vi.mock("@/lib/WorkspaceProvider", () => {
+  // Uma referência só, como o contexto real. Objeto novo por chamada punha
+  // `workspace` novo nas deps de todo efeito, e o hook refazia o fetch a cada
+  // render: 166 requests em 68 ms no useConsumoPontuais com msw 2, e 996 sem
+  // soltar o `isLoading` com msw 3.
+  const value = {
     workspace: {
       id: "ws-1",
       name: "Test WS",
@@ -85,15 +87,28 @@ vi.mock("@/lib/WorkspaceProvider", () => ({
     isLoading: false,
     error: null,
     refresh: vi.fn(),
-  }),
-}));
+  };
+  return {
+    WorkspaceProvider: ({ children }: { children: ReactNode }) =>
+      createElement(Fragment, null, children),
+    useWorkspace: () => value,
+  };
+});
 
 // ─── MSW lifecycle ───
 // Padrão "error" garante que toda chamada não-mockada quebre o teste em vez de
 // silenciosamente passar — evita falsos positivos em integration tests.
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
-afterEach(() => {
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
+
+// Com o msw 3, fetch que o teste não aguarda passou a resolver depois do
+// teardown do jsdom, e o `setState` do hook explodia em "window is not
+// defined". Medido em 2026-10-09 em ReportShell/sectionSummaryDelivery: 4–19
+// unhandled errors por rodada com o msw 3, 0 com o msw 2 e 0 com este tick.
+// Ceder um macrotask depois do `cleanup()` faz o `setState` tardio cair em
+// componente desmontado, com o jsdom ainda vivo.
+afterEach(async () => {
   cleanup(); // unmount React trees
+  await new Promise((resolve) => setTimeout(resolve, 0));
   server.resetHandlers(); // restaura handlers default entre testes
   localStorage.clear();
   sessionStorage.clear();

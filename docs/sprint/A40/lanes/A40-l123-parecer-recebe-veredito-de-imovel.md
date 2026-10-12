@@ -140,6 +140,8 @@ resultado está decidido antes de rodar (`prompt-engineer`).
 1. **Checker pós-LLM** (lista de palavras, padrão `parecer_red_lines`) para prescrição de
    venda de imóvel com fatia em aberto e sem ressalva. Dono `prompt-engineer`; promover a red
    line é do `financial-planner`. Retomada: o re-run 1 mostrar a prescrição.
+   ➜ **2026-10-09:** a guarda determinística da [[ADR-444]] (item 5) é o mesmo mecanismo; as
+   duas seguem juntas em [[PLAN-report-trust]] §Deferimentos da A40.l122 (P1, antes do beta).
 2. **O parecer do dogfood não vê IF nem investimentos.** Medido acima: desde a 2.19.0 o E5
    real evicta `independencia_financeira` e `investimentos`, e os hints delas orientam sobre
    dado ausente do corpo. O orchestrator não loga bytes do corpo nem seções evictadas, então
@@ -168,3 +170,5 @@ resultado está decidido antes de rodar (`prompt-engineer`).
    imóvel de uso não apurado ganhar linha própria na tabela de classes, o hint de `ratios`
    que chama "imóveis de investimento" de TETO deixa de valer para essa linha. Dono: o PR-C
    da l122, que já planeja as superfícies LLM — registrado na lane dela.
+   ➜ **Re-roteado 2026-10-09:** o PR-B da [[A40.l122]] (#2233) mergeou sem o PR-C, que se
+   dividiu. Este item é alcance do parecer: dono [[A40.l8]] (§Escopo adotado — 2026-10-09).

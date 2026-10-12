@@ -128,7 +128,7 @@ function BaseDeclaracao({ base }: { readonly base: BasePontuais | undefined }) {
       data-consumo-base-declaracao
       className="text-xs text-[var(--surface-muted-foreground)]"
     >
-      De {base.bruto.contagem} lançamentos ≥ R$2k no período completo (
+      De {base.bruto.contagem} lançamentos ≥ R$&nbsp;2.000 no período completo (
       <MonetaryValue value={base.bruto.valor} />)
       {base.cobertura_nivel ? `, ${COBERTURA_LABEL[base.cobertura_nivel]}` : ""}
       . Fora da base:{" "}
@@ -182,7 +182,7 @@ function TabelaHeader({
 
 /** F9 · F2.B · S2 — Card "Consumo Consciente".
  *
- *  KPIs do E5 no topo; lista de gastos pontuais ≥ R$2k abaixo, com toggle de
+ *  KPIs do E5 no topo; lista de gastos pontuais ≥ R$ 2.000 abaixo, com toggle de
  *  período próprio (afeta só a lista).
  *
  *  A lista vem do endpoint /reports/consumo-pontuais. Desde a A40.l98 ela e o
@@ -237,7 +237,7 @@ export function ConsumoConscienteCard({
       <div className="mt-4 border-t border-[var(--surface-border)] pt-4">
         <div className="mb-2 flex items-center justify-between gap-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--surface-muted-foreground)]">
-            Gastos pontuais ≥ R$2k
+            Gastos pontuais ≥ R$&nbsp;2.000
           </p>
           <PeriodToggle value={period} onChange={setPeriod} />
         </div>

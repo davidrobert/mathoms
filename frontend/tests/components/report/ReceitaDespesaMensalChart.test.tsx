@@ -49,7 +49,8 @@ const mocks = vi.hoisted(() => {
     },
     toBase64Image: () => "data:image/png;base64,stub",
   };
-  return { chartUpdate, datasetMeta, fakeChart };
+  const chartProps: { options?: unknown } = {};
+  return { chartUpdate, chartProps, datasetMeta, fakeChart };
 });
 
 vi.mock("react-chartjs-2", () => {
@@ -60,8 +61,10 @@ vi.mock("react-chartjs-2", () => {
         labels: string[];
         datasets: Array<{ label: string; stack: string; backgroundColor?: string }>;
       };
+      options?: unknown;
       "aria-label"?: string;
     }) => {
+      mocks.chartProps.options = props.options;
       // Ref entregue em useEffect (pos-commit) para nao chamar setState
       // do parent durante render do filho — React emite warning "Cannot
       // update a component while rendering a different component".
@@ -384,5 +387,64 @@ describe("<ReceitaDespesaMensalChart /> · cores resolvidas (anti-regressão)", 
       expect(c).toBeTruthy();
       expect(c!.startsWith("var(")).toBe(false);
     });
+  });
+});
+
+// ─── Eixo Y monetário (COPY_GUIDELINES §4.2) ───
+// O tick escrevia `R$ ${(n / 1000).toFixed(0)}k`: `k` é proibido em copy pt-BR,
+// ≥ 1 mi saía "R$ 1500k", e no passo de 500 que o Chart.js escolhe para meses
+// pequenos o tick 1.500 virava "R$ 2k" — o mesmo rótulo do 2.000 logo acima.
+// Eixo usa o valor completo, como o `FluxoMensalChart` da mesma seção; compact
+// só quando a escala chega a milhões.
+type YTickCallback = (value: number, index: number, ticks: readonly { value: number }[]) => string;
+
+interface YTickOptions {
+  readonly scales: { readonly y: { readonly ticks: { readonly callback: YTickCallback } } };
+}
+
+const NBSP = String.fromCharCode(0xa0);
+
+describe("<ReceitaDespesaMensalChart /> · eixo Y monetário", () => {
+  /** Rótulos de uma escala, chamando o callback como o Chart.js chama: cada
+   * tick recebe a lista inteira, de onde sai a decisão de compactar. */
+  function renderYAxis(): (escala: readonly number[]) => string[] {
+    render(<ReceitaDespesaMensalChart fluxo={buildFluxo(4)} />);
+    const { callback } = (mocks.chartProps.options as YTickOptions).scales.y.ticks;
+    return (escala) => {
+      const ticks = escala.map((value) => ({ value }));
+      return escala.map((v, i) => callback(v, i, ticks).replaceAll(NBSP, " "));
+    };
+  }
+
+  it("valor completo sem centavos, nunca k", () => {
+    const eixo = renderYAxis();
+    expect(eixo([0, 20_000, 40_000, 60_000])).toEqual([
+      "R$ 0",
+      "R$ 20.000",
+      "R$ 40.000",
+      "R$ 60.000",
+    ]);
+  });
+
+  it("passo de 500 não funde ticks vizinhos", () => {
+    const eixo = renderYAxis();
+    expect(eixo([0, 500, 1_000, 1_500, 2_000, 2_500])).toEqual([
+      "R$ 0",
+      "R$ 500",
+      "R$ 1.000",
+      "R$ 1.500",
+      "R$ 2.000",
+      "R$ 2.500",
+    ]);
+  });
+
+  it("escala que chega a milhões compacta todos os ticks", () => {
+    const eixo = renderYAxis();
+    expect(eixo([0, 500_000, 1_000_000, 1_500_000])).toEqual([
+      "R$ 0",
+      "R$ 500 mil",
+      "R$ 1 mi",
+      "R$ 1,5 mi",
+    ]);
   });
 });

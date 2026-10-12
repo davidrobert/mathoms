@@ -5,7 +5,7 @@ title: "Precedência declarada do parágrafo de seção e CV9 como medida de ent
 status: Decidido
 phase: report-review r3 (RV3-03 · RV3-33) · A40.l4
 date: "2026-07-31"
-amended_at: ["2026-08-05", "2026-08-11"]
+amended_at: ["2026-08-05", "2026-08-11", "2026-10-09"]
 relates_to:
   - "[[ADR-144]]"
   - "[[ADR-122]]"
@@ -35,6 +35,11 @@ size_lines: 782
 > exigi-la — a regra que obrigava a coluna a existir proibia silêncio e produzia
 > afirmação incondicional. Regra que fica: o narrador de `perfil_familia` não
 > publica valor monetário nem juízo qualitativo. Ver §Emenda 2026-08-11.
+>
+> **Emenda 2026-10-09 (o backend sai da precedência):** a [[ADR-144]] tira o fallback
+> do backend. Com o LLM falhando, a seção fica ausente de `section_summaries`, e as
+> camadas 2 e 3 decidem. A frase da §D2 sobre `_read_legacy_summary` deixa de valer.
+> Ver §Emenda 2026-10-09.
 
 ## Tamanho — por que não é split
 
@@ -803,3 +808,19 @@ superfície das classes que §D9 removeu), não a forma do narrador.
 `{"type": "string"}` sem `required` — é tolerância de leitura para artefato antigo em
 `pipeline_artifacts`, não descrição do que o produtor emite. O validador segue
 aplicando os limites de tag e de 300 chars a `right` **quando presente**.
+
+## Emenda 2026-10-09 — o backend não grava mais fallback na camada 1
+
+A [[ADR-144]] §Emenda 2026-10-09 tira o fallback do backend. Com o LLM falhando, a seção
+fica ausente de `section_summaries`, e as camadas 2 e 3 decidem no renderer. O fallback
+gravava na camada 1 a cópia da camada 2, rotulada `llm` e sem o sufixo da §D10, ou um
+genérico que mascarava a camada 3.
+
+Na §D2 deixam de valer duas afirmações:
+- a de que o `_read_legacy_summary` "também lê `summary_source`": o backend não lê mais
+  `narrativas.summaries`;
+- a de que a "seção sem destino declarado cai no fallback genérico".
+
+A §D2 continua valendo no renderer: `LAYOUT_SUMMARY_SOURCE` é o único mapa de
+`summary_source`, e `sectionSummarySource.ts` é o único lugar que decide de onde vem o
+parágrafo.

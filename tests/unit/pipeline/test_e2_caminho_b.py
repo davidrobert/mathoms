@@ -95,24 +95,14 @@ class TestBankStatementFromE2Dict:
 class TestRunWithStoreNoFiles:
     """Smoke: ``run_with_store`` não quebra em diretório vazio e não toca disco."""
 
-    def test_no_files_returns_empty_stats(self, tmp_path, monkeypatch):
-        # Configurar pipeline_common apontando para tmp_path vazio
-        monkeypatch.setenv("MATHOMS_WORKSPACE_ROOT", str(tmp_path))
+    def test_no_files_returns_empty_stats(self, tmp_path):
         data_dir = tmp_path / "data" / "financial_statements"
         data_dir.mkdir(parents=True)
-
-        # Reinit paths
-        import scripts.pipeline_common as _pc
-
-        _pc.init_workspace_paths_from_env(strict=False)
-        from scripts.e2.common import _init_config as _e2_init
-
-        _e2_init(tmp_path)
 
         from scripts.extract_bank_documents import run_with_store
 
         store = InMemoryArtifactStore()
-        stats = run_with_store(store=store, extratos_only=True)
+        stats = run_with_store(store=store, statements_dir=data_dir, extratos_only=True)
 
         assert stats["processados"] == 0
         assert stats["transacoes_total"] == 0

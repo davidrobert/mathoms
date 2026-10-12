@@ -19,7 +19,7 @@ import {
   humanizeCategoryLabel,
   isAporteInvestimentoKey,
 } from "@/lib/categoryLabels";
-import { formatPercent } from "@/lib/format";
+import { formatBRLDataLabel, formatPercent } from "@/lib/format";
 import type { FluxoCaixaSummary, ChartSeries } from "@/types/report-analysis";
 
 interface CategoryRow {
@@ -144,12 +144,12 @@ function naoIdentificadoPct(slices: readonly CategoryRow[], total: number): numb
   return (alvo / total) * 100;
 }
 
-/** Datalabel: `R$ Xk` se fatia ≥ 5% — paridade EXEMPLO_DE_RELATORIO.html:7966-7979.
+/** Datalabel compacto (`R$ 23 mil`, COPY_GUIDELINES §4.2) se fatia ≥ 5%.
  * Exceção A28.l9: "não identificado" sempre exibe datalabel (sinal de
  * qualidade não pode desaparecer quando a fatia é pequena). */
 function dataLabelFormatter(value: number, pct: number, label: string): string {
-  if (isNaoIdentificadoKey(label)) return `R$ ${(value / 1000).toFixed(0)}k`;
-  return pct >= 5 ? `R$ ${(value / 1000).toFixed(0)}k` : "";
+  if (isNaoIdentificadoKey(label)) return formatBRLDataLabel(value);
+  return pct >= 5 ? formatBRLDataLabel(value) : "";
 }
 
 const CONTEXT_STYLE = {
@@ -181,7 +181,7 @@ function useDespesaSlices(
  *
  * Migra de Recharts para Chart.js primitives. Consome `despesa_datasets`
  * (séries mensais por categoria) para que `<PeriodToggle>` recalcule
- * fatias somando dentro da janela. Datalabels mostram `R$ Xk` em fatias
+ * fatias somando dentro da janela. Datalabels mostram `R$ 23 mil` em fatias
  * ≥ 5% do total. Print: toggle escondido, fixa 12m. */
 export function DespesasDoughnutChart({ fluxo }: DespesasDoughnutChartProps) {
   const isPrint = useIsPrint();

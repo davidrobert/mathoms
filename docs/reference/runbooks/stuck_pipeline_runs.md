@@ -11,6 +11,7 @@ relates_to:
   - "[[ADR-404]]"
   - "[[ADR-417]]"
   - "[[A40.l84]]"
+  - "[[ADR-446]]"
 tags:
   - type/runbook
   - area/backend
@@ -74,6 +75,7 @@ pelo card de falha da UI — a query é o caminho de menor dependência, não o 
 | `status='failed'`, `failure_reason='dispatch_unconfirmed'` | ninguém reivindicou | §3 |
 | `status='failed'`, `failure_reason='run_setup_failed'` | falhou antes do enqueue | §4 |
 | `status='failed'`, `failure_reason='heartbeat_timeout'` | executor emudeceu | §5 |
+| `status='failed'`, `failure_reason='time_limit_exceeded'` | o loop encerrou o run no tempo limite | §5.1 |
 | `status='resuming'` parado | `sem_dono = true` | §6 |
 | `status='pending'`/`'running'` parado, `sem_dono = false` | **pode ser legítimo** | §1.2 antes de agir |
 
@@ -194,6 +196,30 @@ Logo o flip do reaper para `failed` **não para** o worker vivo — ele **sobres
 `ux_pipeline_runs_ws_active`, então o "Reprocessar" do usuário cria um **segundo executor
 vivo no mesmo workspace**, os dois escrevendo artefatos. O custo aceito pela [[ADR-172]]
 ("não detecta falsos-running") era **detecção**, não corrupção por retry cego.
+
+## 5.1 `time_limit_exceeded` — o run atingiu o tempo limite
+
+O run atingiu o soft time limit da task (`task_soft_time_limit`) e o loop o encerrou
+([[ADR-446]]). Depois do prazo nenhum stage começou. O interrompido e os que não rodaram
+têm `reason_class=timeout` e `output_summary.time_limit` (`detection`, `not_started`).
+
+- **Sinal:** `ERROR mathoms.pipeline.run_time_limit_exceeded`, uma vez por run, com
+  `stage`, `detection`, `caused_failure` e `elapsed_s`. Abra **ticket em toda ocorrência**:
+  cada uma está ≥3× acima do p95 do SLO premium.
+- **≥2 ocorrências em 60 min** ⇒ pipeline degradado: com `worker_concurrency=2` é a fila
+  inteira parada. Comunicação de incidente em <15 min ([SLO](../SLO.md)).
+- **`partial_failure` também conta.** Com o E5 pronto o run entrega o relatório, os stages
+  da cauda ficam `degraded` e `failure_reason` fica NULL de propósito. O evento é o sinal.
+- **O executor parou?** Sim, no in-process: o loop finalizou antes do hard limit, então
+  "Reprocessar a partir de" é seguro. Diferente da §5, não há segundo executor vivo.
+  **Exceção:** no shell Go o subprocess remoto segue até o timeout do shell ([[ADR-446]]
+  §Deferimento 2). Confira o shell antes de reprocessar.
+- **Ação:** "Reprocessar a partir de {etapa}" (`from_stage`) retoma da etapa interrompida.
+  Se recorrer no **mesmo** workspace, o volume dele não cabe no orçamento: escale para
+  capacidade. "Reprocessar" do zero paga tudo de novo e tende a estourar outra vez.
+- **Hard kill ainda aparece como §5.** Se o processo morreu no hard limit (o loop não
+  chegou a finalizar), o motivo continua `heartbeat_timeout` até o §Deferimento 1 da
+  [[ADR-446]]. O log do worker mostra `Hard time limit (3600s) exceeded`.
 
 ## 6. Órfão em `resuming` (é status, não `failure_reason`)
 
