@@ -134,7 +134,7 @@ jobs:
 
       - name: Upload junit results
         if: always() && steps.key-check.outputs.has_key == 'true'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: cross-provider-${{ matrix.provider }}-results
           path: cross-provider-${{ matrix.provider }}-results.xml

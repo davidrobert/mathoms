@@ -461,37 +461,3 @@ export interface CoverMetaItem {
  *  derivada frontend-side; LLM fallback fica para revisão Q11. */
 export type ChartConclusions = Record<string, string>;
 export type SectionSummaries = Record<string, string>;
-
-// ──────────────────────────────────────────────────────────────────────
-// Aportes e Investimentos (dashboard)
-//
-// Shape espelha o `dashboard.aportes` + `dashboard.investimentos_delta`
-// produzidos pelo E5. Determinístico; nenhum campo novo no pipeline.
-// Originalmente consumido pelo Tático T2 (removido em ADR-149). Hoje sem
-// consumidor: o `/plano` lê `/v1/dashboard` (kpis/charts/alerts), não este shape.
-// ──────────────────────────────────────────────────────────────────────
-
-/** Item de aporte planejado/executado por destino (CDB, Tesouro, ETF…). */
-export interface AporteItem {
-  readonly label: string;
-  readonly feito: boolean;
-  readonly valor_meta: number;
-  readonly valor_feito?: number;
-}
-
-/** Variação patrimonial por bloco (Investimentos David, Mariana, USD…). */
-export interface InvestimentoDeltaItem {
-  readonly label: string;
-  readonly anterior: number;
-  readonly atual: number;
-}
-
-/** Subset tipado do `dashboard` do E5 (aportes e investimentos_delta), sem
- * consumidor hoje — ver o cabeçalho do bloco. Mantém-se aberto via `[key: string]: unknown`
- * porque o E5 ainda emite chaves não cobertas (proximos_15d, alertas,
- * tarefas, notas) — Direção E moverá esses para /acao via Onda 4+. */
-export interface DashboardData {
-  readonly aportes?: Record<string, AporteItem>;
-  readonly investimentos_delta?: Record<string, InvestimentoDeltaItem>;
-  readonly [key: string]: unknown;
-}

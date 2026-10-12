@@ -266,7 +266,7 @@ jobs:
         working-directory: ${{ matrix.dir }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: ${{ matrix.dir }}/.nvmrc
       - name: npm audit (prod, HIGH+)
@@ -287,7 +287,7 @@ jobs:
         working-directory: ${{ matrix.dir }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: ${{ matrix.dir }}/.nvmrc
       - name: npm audit (incluindo dev, informativo)

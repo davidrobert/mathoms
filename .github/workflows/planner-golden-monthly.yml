@@ -136,7 +136,7 @@ jobs:
 
       - name: Upload junit results + baseline candidata
         if: always() && steps.key-check.outputs.has_key == 'true'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: golden-monthly-results
           path: |
