@@ -2352,7 +2352,7 @@
         },
         "total": {
           "type": "number",
-          "description": "Total investido = carteira financeira + Imóveis Investimento. Exclui a linha 'Imóveis com uso não apurado' (com valor e sem peso, ADR-444 D3): total + total_imoveis_uso_nao_apurado = Σ tabela_classes[].valor."
+          "description": "Total investido = carteira financeira + Imóveis Investimento. Residência, uso pessoal e nu-propriedade não entram (ADR-444 D9). Exclui a linha 'Imóveis com uso não apurado' (com valor e sem peso, ADR-444 D3): total + total_imoveis_uso_nao_apurado = Σ tabela_classes[].valor."
         },
         "total_financeiro": {
           "type": "number",
@@ -2360,7 +2360,7 @@
         },
         "total_imoveis_investimento": {
           "type": "number",
-          "description": "Subtotal da linha 'Imóveis Investimento' (A37.l9): imóveis não-residência pelo veredito do run — os classificados (qualquer uso; não implica renda) e, com a residência identificada, os desconhecidos por eliminação. Resíduo declarado: a cota do cônjuge sem property_id pode estar aqui, e é o piso de patrimonio.cobertura_classificacao_imovel.residencia (ADR-439 D2 · ADR-444 D6)."
+          "description": "Subtotal da linha 'Imóveis Investimento' (A37.l9): imóveis que o próximo aporte move — os classificados como locado, comercial ou especulação (não implica renda) e, com a residência identificada, os desconhecidos por eliminação. Uso pessoal e nu-propriedade ficam fora da carteira, pela mesma lista de patrimonio.imoveis_fora_alocacao (ADR-420 §D1 · ADR-444 D9); total_imoveis_investimento + total_imoveis_uso_nao_apurado = patrimonio.imoveis_alocacao. Resíduo declarado: a cota do cônjuge sem property_id pode estar aqui, e é o piso de patrimonio.cobertura_classificacao_imovel.residencia (ADR-439 D2 · ADR-444 D6)."
         },
         "total_imoveis_uso_nao_apurado": {
           "type": "number",

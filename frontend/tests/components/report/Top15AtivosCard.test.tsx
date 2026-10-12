@@ -143,10 +143,10 @@ describe("<Top15AtivosCard />", () => {
     expect(screen.getByText("Top 15 Ativos da Carteira")).toBeInTheDocument();
   });
 
-  it("renderiza subtítulo explicando exclusão de residência principal", () => {
+  it("renderiza subtítulo explicando o que fica fora da carteira (ADR-444 D9)", () => {
     render(<Top15AtivosCard data={{ top_ativos: [ativo()] }} />);
     expect(
-      screen.getByText(/Não inclui residência principal nem bens de uso pessoal/),
+      screen.getByText(/Residência principal e imóveis marcados como uso pessoal ou nu-propriedade/),
     ).toBeInTheDocument();
     expect(screen.getByText(/Composição Patrimonial/)).toBeInTheDocument();
   });
@@ -186,7 +186,8 @@ describe("<Top15AtivosCard /> — imóvel com uso não apurado (ADR-444)", () =>
   it("o subtítulo deixa de prometer que a residência está fora", () => {
     render(<Top15AtivosCard data={{ top_ativos: comCasaNoTopo }} />);
     expect(screen.getByText(/podem incluir a residência principal/)).toBeInTheDocument();
-    expect(screen.queryByText(/Não inclui residência principal/)).not.toBeInTheDocument();
+    expect(screen.getByText(/uso pessoal ou nu-propriedade também ficam fora/)).toBeInTheDocument();
+    expect(screen.queryByText(/Residência principal e imóveis marcados/)).not.toBeInTheDocument();
   });
 
   it("o alarme de concentração passa ao maior item com %", () => {

@@ -36,6 +36,10 @@ tags:
 > original fica como evidência; a correção está em §Correção 2026-10-09. Nenhuma decisão
 > (D1–D8) muda.
 
+> **Emendada 2026-10-09 (D9, PR-D da [[A40.l122]]):** uso pessoal e nu-propriedade saem da
+> carteira inteira — tabela, total e ranking —, não só do ranking, como previa o §Deferimento 1.
+> A decisão está em §Emenda 2026-10-09 — D9; D1–D8 não mudam.
+
 > Co-design 2026-10-08: `financial-planner` (a regra), `data-engineer` (o contrato e a ordem
 > dos PRs), `product-designer` (a copy, que aqui é chave gravada). Executa o que a
 > [[ADR-439]] deixou "Fora desta ADR": a checagem de residência por `property_id` em
@@ -202,3 +206,16 @@ entre a classe do item no ranking e a linha da tabela.
    `total_imoveis_uso_nao_apurado`, hint de `ratios`, regra em `narrative_hints`, bump) vai para a
    [[A40.l8]]; a guarda determinística, a exceção de tom da S3 e os itens 2, 3, 4 e 6 vão para
    [[PLAN-report-trust]] §Deferimentos da A40.l122.
+
+## Emenda 2026-10-09 — D9: uso pessoal e nu-propriedade saem da carteira
+
+Co-design `financial-planner` + `product-designer`. Executa o §Deferimento 1 na carteira inteira,
+não só no ranking: imóvel que o próximo aporte não move não é investimento em nenhuma das três
+metodologias, e tirá-lo só do ranking criaria duas bases para o "% da carteira". O roteador
+devolve `None` para a residência e para `CLASSIFICATIONS_FORA_DA_ALOCACAO`, a mesma lista do
+numerador da concentração ([[ADR-420]] §D1), e os dois imóveis seguem no patrimônio
+(`imoveis_fora_alocacao`). Em centavos, `total_imoveis_investimento +
+total_imoveis_uso_nao_apurado = patrimonio.imoveis_alocacao`; patrimônio, cat_2 e concentração
+não mudam. Na alocação-alvo, caixa% e `imoveis_fisicos_brl` mudam na direção certa (a base perde
+o imóvel não rebalanceável); `desvio_max` e `next_aporte` não mudam. Gate:
+`tests/test_carteira_fora_de_alocacao_gate.py`, com o roteador antigo como mutação.

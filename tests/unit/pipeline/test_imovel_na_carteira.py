@@ -25,6 +25,16 @@ from pipeline.domain.services.investimentos_classes_analyzer import (
     InvestimentosClassesConfig,
     _pct_carteira_financeira,
 )
+from pipeline.domain.services.patrimonio_imovel_classifier import (
+    CLASSIFICATION_COMERCIAL,
+    CLASSIFICATION_DESCONHECIDO,
+    CLASSIFICATION_ESPECULACAO,
+    CLASSIFICATION_LOCADO,
+    CLASSIFICATION_NU_PROPRIETARIO,
+    CLASSIFICATION_RESIDENCIA_PRINCIPAL,
+    CLASSIFICATION_USO_PESSOAL,
+    CLASSIFICATIONS_FORA_DA_ALOCACAO,
+)
 from pipeline.domain.services.top_ativos_analyzer import TopAtivosAnalyzer, TopAtivosConfig
 
 _SCHEMA_E5 = Path(__file__).resolve().parents[3] / "config" / "schemas" / "e5_analysis.schema.json"
@@ -37,9 +47,18 @@ def _categorias_do_schema() -> list[str]:
     return investimentos["properties"]["tabela_classes"]["items"]["properties"]["categoria"]["enum"]
 
 
-_OVERRIDES = {"p-casa": "residencia_principal", "p-sala": "locado"}
+_OVERRIDES = {
+    "p-casa": "residencia_principal",
+    "p-sala": "locado",
+    "p-praia": "uso_pessoal",
+    "p-nua": "nu_proprietario",
+    "p-terreno": "especulacao",
+}
 _CASA = {"property_id": "p-casa", "valor_31_12_ano_base": 800_000}
 _SALA = {"property_id": "p-sala", "valor_31_12_ano_base": 300_000}
+_PRAIA = {"property_id": "p-praia", "valor_31_12_ano_base": 350_000}
+_NUA = {"property_id": "p-nua", "valor_31_12_ano_base": 250_000}
+_TERRENO = {"property_id": "p-terreno", "valor_31_12_ano_base": 150_000}
 _SEM_ID = {"valor_31_12_ano_base": 200_000}
 _ID_SEM_OVERRIDE = {"property_id": "p-x", "valor_31_12_ano_base": 100_000}
 
@@ -48,14 +67,54 @@ _ID_SEM_OVERRIDE = {"property_id": "p-x", "valor_31_12_ano_base": 100_000}
     ("imovel", "esperado"),
     [
         (_CASA, None),
+        (_PRAIA, None),
+        (_NUA, None),
         (_SALA, CLASSE_IMOVEIS_INVESTIMENTO),
+        (_TERRENO, CLASSE_IMOVEIS_INVESTIMENTO),
         (_SEM_ID, CLASSE_IMOVEIS_INVESTIMENTO),
         (_ID_SEM_OVERRIDE, CLASSE_IMOVEIS_INVESTIMENTO),
     ],
-    ids=["residencia", "locado", "sem_id", "id_sem_override"],
+    ids=[
+        "residencia",
+        "uso_pessoal",
+        "nu_proprietario",
+        "locado",
+        "especulacao",
+        "sem_id",
+        "id_sem_override",
+    ],
 )
 def test_roteamento_do_imovel(imovel: dict, esperado: str | None) -> None:
     assert classe_do_imovel_na_carteira(imovel, _OVERRIDES) == esperado
+
+
+# [[ADR-444]] D9: a carteira e o numerador da concentração ([[ADR-420]] §D1) cortam pela
+# MESMA lista. Editar uma das duas sem a outra reprova aqui, não no relatório.
+@pytest.mark.parametrize(
+    "classificacao",
+    [
+        CLASSIFICATION_RESIDENCIA_PRINCIPAL,
+        CLASSIFICATION_USO_PESSOAL,
+        CLASSIFICATION_NU_PROPRIETARIO,
+        CLASSIFICATION_LOCADO,
+        CLASSIFICATION_COMERCIAL,
+        CLASSIFICATION_ESPECULACAO,
+    ],
+)
+def test_fora_da_carteira_e_a_lista_da_concentracao(classificacao: str) -> None:
+    imovel = {"property_id": "p-1", "valor_31_12_ano_base": 100_000}
+    fora = classe_do_imovel_na_carteira(imovel, {"p-1": classificacao}) is None
+    esperado = classificacao in CLASSIFICATIONS_FORA_DA_ALOCACAO | {
+        CLASSIFICATION_RESIDENCIA_PRINCIPAL
+    }
+    assert fora is esperado
+
+
+def test_desconhecido_segue_na_carteira() -> None:
+    """Sem classificação não há declaração de uso: o lado conservador ([[ADR-420]] §D2)."""
+    imovel = {"valor_31_12_ano_base": 100_000}
+    assert classe_do_imovel_na_carteira(imovel, {}) == CLASSE_IMOVEIS_INVESTIMENTO
+    assert CLASSIFICATION_DESCONHECIDO not in CLASSIFICATIONS_FORA_DA_ALOCACAO
 
 
 def test_tabela_e_ranking_roteiam_pelo_mesmo_classificador() -> None:

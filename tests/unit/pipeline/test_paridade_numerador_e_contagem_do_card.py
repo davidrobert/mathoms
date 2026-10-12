@@ -13,7 +13,6 @@
 from __future__ import annotations
 
 from pipeline.domain.services.patrimonio_imovel_classifier import (
-    _CLASSIFICATIONS_FORA_DA_ALOCACAO,
     CLASSIFICATION_COMERCIAL,
     CLASSIFICATION_DESCONHECIDO,
     CLASSIFICATION_ESPECULACAO,
@@ -21,6 +20,7 @@ from pipeline.domain.services.patrimonio_imovel_classifier import (
     CLASSIFICATION_NU_PROPRIETARIO,
     CLASSIFICATION_RESIDENCIA_PRINCIPAL,
     CLASSIFICATION_USO_PESSOAL,
+    CLASSIFICATIONS_FORA_DA_ALOCACAO,
 )
 from pipeline.domain.services.real_estate_metrics import INVESTMENT_CLASSIFICATIONS
 
@@ -38,7 +38,7 @@ _CAT_2 = frozenset(
 
 def _conjunto_do_numerador() -> frozenset[str]:
     """O que o numerador soma, derivado do produtor — nunca reescrito à mão aqui."""
-    return _CAT_2 - _CLASSIFICATIONS_FORA_DA_ALOCACAO
+    return _CAT_2 - CLASSIFICATIONS_FORA_DA_ALOCACAO
 
 
 def test_residencia_nao_esta_em_cat_2():
