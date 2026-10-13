@@ -517,7 +517,7 @@ jobs:
       - name: Install uv (SHA-pinned v8.1.0)
         # uv é resolver/installer 5-10x mais rápido que pip para deps Python.
         # SHA pin previne tag-rewrite; v8.1.0 é a release mais recente.
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
         with:
           version: "0.5.x"
 
@@ -627,7 +627,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install uv (SHA-pinned v8.1.0)
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
         with:
           version: "0.5.x"
 
@@ -799,7 +799,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install uv (SHA-pinned v8.1.0)
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
         with:
           version: "0.5.x"
 
