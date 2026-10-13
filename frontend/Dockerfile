@@ -11,7 +11,7 @@
 # ---------------------------------------------------------------------------
 # node:<major>-alpine pinado por digest do índice multi-arch (A20.L2 · ADR-249).
 # O major é o de frontend/.nvmrc — o gate node-version-parity reprova divergência.
-FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS deps
+FROM node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY frontend/package.json frontend/package-lock.json ./
@@ -20,7 +20,7 @@ RUN npm ci --no-audit --no-fund
 # ---------------------------------------------------------------------------
 # Stage 2: builder — roda codegen (Python) + next build (gera .next/standalone)
 # ---------------------------------------------------------------------------
-FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS builder
+FROM node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS builder
 # Python necessário pelo prebuild: design-tokens/build.py + dev/codegen_report_layout.py.
 # pyyaml + jsonschema são deps do codegen do report_layout.
 RUN apk add --no-cache python3 py3-pip py3-yaml py3-jsonschema libc6-compat
@@ -50,7 +50,7 @@ RUN npm run build
 # ---------------------------------------------------------------------------
 # Stage 3: runner — imagem final mínima, só com o standalone server
 # ---------------------------------------------------------------------------
-FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS runner
+FROM node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
