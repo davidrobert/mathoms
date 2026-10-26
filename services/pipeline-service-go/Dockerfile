@@ -10,7 +10,7 @@
 # Build (context = raiz do repo):
 #   docker build -f services/pipeline-service-go/Dockerfile -t mathoms-pipeline-service-go .
 
-FROM golang:1.27@sha256:4013ae0f9e7994f8535c58c811f8f863fbed38b72e0d51e6592156f758d66146 AS gobuild
+FROM golang:1.27@sha256:f20d83a83e18dbd2a4714b8ffd4b30b287b6243962dd75608e86abcc63ba4efc AS gobuild
 WORKDIR /src
 COPY go.work go.work.sum ./
 COPY services/pipeline-service-go ./services/pipeline-service-go
