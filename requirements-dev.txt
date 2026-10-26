@@ -14,7 +14,7 @@ pytest-asyncio>=1.4.0
 pytest-cov>=7.1.0
 
 # 6.5F.12 — Synthetic PDF generator
-reportlab>=5.0.1
+reportlab>=5.1.0
 
 # A24.l7 — XLS binário sintético p/ corpus do flip strict (xlrd só lê;
 # xlwt gera BIFF p/ exercitar parse_itau_xls/parse_santander_xls de verdade)
