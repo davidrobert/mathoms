@@ -66,4 +66,4 @@ numpy>=1.26,<3
 
 # Dev/test
 pytest>=8.0
-pytest-asyncio>=1.4.0
+pytest-asyncio>=1.4.1
